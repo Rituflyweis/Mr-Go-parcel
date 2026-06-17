@@ -11,6 +11,7 @@ router.post("/register", register);
 router.post("/verify-otp", verifyOTP);
 router.post("/login", login);
 router.post("/send-otp", sendOTP);
+router.post("/resend-otp", sendOTP);
 router.post("/reset-password", resetPassword);
 
 router.get("/me", protect, getMe);

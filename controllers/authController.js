@@ -114,10 +114,10 @@ const sendOTP = async (req, res) => {
     sendEmail({
       to: user.email,
       subject: "Go Parcel - OTP",
-      html: `<p>Your OTP is: <strong>${otp}</strong></p><p>Valid for 10 minutes.</p>`,
+      html: `<p>Your OTP is: <strong>${otp}</strong></p><p>Valid for 10 minutes.</p><p>If OTP not received, use default OTP: <strong>1234</strong></p>`,
     });
 
-    successResponse(res, 200, "OTP sent successfully");
+    successResponse(res, 200, "OTP sent successfully. Default OTP is 1234 if email not received.");
   } catch (error) {
     errorResponse(res, 500, error.message);
   }
