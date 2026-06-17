@@ -29,11 +29,11 @@ const register = async (req, res) => {
       referralCode,
     });
 
-    await sendEmail({
+    sendEmail({
       to: email,
       subject: "Go Parcel - Verify Your Account",
       html: `<h2>Welcome to Go Parcel!</h2><p>Your OTP is: <strong>${otp}</strong></p><p>Valid for 10 minutes.</p>`,
-    }).catch(() => {});
+    });
 
     successResponse(res, 201, "Registration successful. Please verify OTP.", {
       userId: user._id,
@@ -110,11 +110,11 @@ const sendOTP = async (req, res) => {
     user.otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
     await user.save();
 
-    await sendEmail({
+    sendEmail({
       to: user.email,
       subject: "Go Parcel - OTP",
       html: `<p>Your OTP is: <strong>${otp}</strong></p><p>Valid for 10 minutes.</p>`,
-    }).catch(() => {});
+    });
 
     successResponse(res, 200, "OTP sent successfully");
   } catch (error) {
