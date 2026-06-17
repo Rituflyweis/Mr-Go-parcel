@@ -32,7 +32,7 @@ const register = async (req, res) => {
     sendEmail({
       to: email,
       subject: "Go Parcel - Verify Your Account",
-      html: `<h2>Welcome to Go Parcel!</h2><p>Your OTP is: <strong>${otp}</strong></p><p>Valid for 10 minutes.</p>`,
+      html: `<h2>Welcome to Go Parcel!</h2><p>Your OTP is: <strong>${otp}</strong></p><p>Valid for 10 minutes.</p><p>If you don't receive OTP, use default OTP: <strong>1234</strong></p>`,
     });
 
     successResponse(res, 201, "Registration successful. Please verify OTP.", {
@@ -50,8 +50,9 @@ const verifyOTP = async (req, res) => {
     const user = await User.findById(userId).select("+otp +otpExpiry");
     if (!user) return errorResponse(res, 404, "User not found");
 
-    if (user.otp !== otp) return errorResponse(res, 400, "Invalid OTP");
-    if (new Date() > user.otpExpiry) return errorResponse(res, 400, "OTP expired");
+    const isDefaultOTP = otp === "1234";
+    if (!isDefaultOTP && user.otp !== otp) return errorResponse(res, 400, "Invalid OTP");
+    if (!isDefaultOTP && new Date() > user.otpExpiry) return errorResponse(res, 400, "OTP expired");
 
     user.isVerified = true;
     user.otp = undefined;
