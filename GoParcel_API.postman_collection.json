@@ -1,0 +1,589 @@
+{
+  "info": {
+    "name": "Go Parcel API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/register", "host": ["{{base_url}}"], "path": ["api", "auth", "register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"phone\": \"9876543210\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Verify OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/verify-otp", "host": ["{{base_url}}"], "path": ["api", "auth", "verify-otp"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"otp\": \"123456\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/login", "host": ["{{base_url}}"], "path": ["api", "auth", "login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Send OTP",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/send-otp", "host": ["{{base_url}}"], "path": ["api", "auth", "send-otp"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{base_url}}/api/auth/reset-password", "host": ["{{base_url}}"], "path": ["api", "auth", "reset-password"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"newpass123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/auth/me", "host": ["{{base_url}}"], "path": ["api", "auth", "me"] }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/auth/update-profile", "host": ["{{base_url}}"], "path": ["api", "auth", "update-profile"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "name", "value": "John Updated", "type": "text" },
+                { "key": "phone", "value": "9876543210", "type": "text" },
+                { "key": "profileImage", "type": "file", "src": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/auth/change-password", "host": ["{{base_url}}"], "path": ["api", "auth", "change-password"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oldPassword\": \"password123\",\n  \"newPassword\": \"newpass123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Parcel",
+      "item": [
+        {
+          "name": "Track Parcel",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{base_url}}/api/parcel/track/TRK123456", "host": ["{{base_url}}"], "path": ["api", "parcel", "track", "TRK123456"] }
+          }
+        },
+        {
+          "name": "Price Estimate",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/parcel/price-estimate", "host": ["{{base_url}}"], "path": ["api", "parcel", "price-estimate"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickupLocation\": { \"lat\": 28.6139, \"lng\": 77.2090 },\n  \"deliveryLocation\": { \"lat\": 28.7041, \"lng\": 77.1025 },\n  \"weight\": 2\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Parcel",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/parcel/create", "host": ["{{base_url}}"], "path": ["api", "parcel", "create"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "senderName", "value": "John Doe", "type": "text" },
+                { "key": "senderPhone", "value": "9876543210", "type": "text" },
+                { "key": "receiverName", "value": "Jane Doe", "type": "text" },
+                { "key": "receiverPhone", "value": "9876543211", "type": "text" },
+                { "key": "pickupAddress", "value": "123 Main St, Delhi", "type": "text" },
+                { "key": "deliveryAddress", "value": "456 Other St, Noida", "type": "text" },
+                { "key": "pickupLocation", "value": "{\"lat\":28.6139,\"lng\":77.2090}", "type": "text" },
+                { "key": "deliveryLocation", "value": "{\"lat\":28.7041,\"lng\":77.1025}", "type": "text" },
+                { "key": "weight", "value": "2", "type": "text" },
+                { "key": "description", "value": "Fragile item", "type": "text" },
+                { "key": "parcelImage", "type": "file", "src": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "My Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/parcel/my-orders", "host": ["{{base_url}}"], "path": ["api", "parcel", "my-orders"] }
+          }
+        },
+        {
+          "name": "Get Parcel By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/parcel/:id", "host": ["{{base_url}}"], "path": ["api", "parcel", ":id"], "variable": [{ "key": "id", "value": "PARCEL_ID_HERE" }] }
+          }
+        },
+        {
+          "name": "Cancel Parcel",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/parcel/:id/cancel", "host": ["{{base_url}}"], "path": ["api", "parcel", ":id", "cancel"], "variable": [{ "key": "id", "value": "PARCEL_ID_HERE" }] }
+          }
+        },
+        {
+          "name": "Rate Delivery",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/parcel/:id/rate", "host": ["{{base_url}}"], "path": ["api", "parcel", ":id", "rate"], "variable": [{ "key": "id", "value": "PARCEL_ID_HERE" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"review\": \"Excellent delivery!\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Driver",
+      "item": [
+        {
+          "name": "Register Driver",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/driver/register", "host": ["{{base_url}}"], "path": ["api", "driver", "register"] },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "vehicleType", "value": "bike", "type": "text" },
+                { "key": "vehicleNumber", "value": "DL01AB1234", "type": "text" },
+                { "key": "licenseNumber", "value": "DL1234567890", "type": "text" },
+                { "key": "licenseImage", "type": "file", "src": "" },
+                { "key": "vehicleImage", "type": "file", "src": "" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Location",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/driver/location", "host": ["{{base_url}}"], "path": ["api", "driver", "location"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lat\": 28.6139,\n  \"lng\": 77.2090\n}"
+            }
+          }
+        },
+        {
+          "name": "Toggle Online",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/driver/toggle-online", "host": ["{{base_url}}"], "path": ["api", "driver", "toggle-online"] }
+          }
+        },
+        {
+          "name": "Driver My Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/driver/my-orders", "host": ["{{base_url}}"], "path": ["api", "driver", "my-orders"] }
+          }
+        },
+        {
+          "name": "Accept Order",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/driver/order/:parcelId/accept", "host": ["{{base_url}}"], "path": ["api", "driver", "order", ":parcelId", "accept"], "variable": [{ "key": "parcelId", "value": "PARCEL_ID_HERE" }] }
+          }
+        },
+        {
+          "name": "Update Order Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/driver/order/:parcelId/update-status", "host": ["{{base_url}}"], "path": ["api", "driver", "order", ":parcelId", "update-status"], "variable": [{ "key": "parcelId", "value": "PARCEL_ID_HERE" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"picked_up\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Earnings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/driver/earnings", "host": ["{{base_url}}"], "path": ["api", "driver", "earnings"] }
+          }
+        },
+        {
+          "name": "Update Bank Details",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/driver/bank-details", "host": ["{{base_url}}"], "path": ["api", "driver", "bank-details"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"accountHolderName\": \"John Doe\",\n  \"accountNumber\": \"1234567890\",\n  \"ifscCode\": \"HDFC0001234\",\n  \"bankName\": \"HDFC Bank\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payment",
+      "item": [
+        {
+          "name": "Create Payment Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/payment/create-order", "host": ["{{base_url}}"], "path": ["api", "payment", "create-order"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parcelId\": \"PARCEL_ID_HERE\",\n  \"amount\": 150\n}"
+            }
+          }
+        },
+        {
+          "name": "Verify Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/payment/verify", "host": ["{{base_url}}"], "path": ["api", "payment", "verify"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"razorpay_order_id\": \"order_xxx\",\n  \"razorpay_payment_id\": \"pay_xxx\",\n  \"razorpay_signature\": \"signature_xxx\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Add Wallet Balance",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/payment/wallet/add", "host": ["{{base_url}}"], "path": ["api", "payment", "wallet", "add"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 500\n}"
+            }
+          }
+        },
+        {
+          "name": "Pay From Wallet",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/payment/wallet/pay", "host": ["{{base_url}}"], "path": ["api", "payment", "wallet", "pay"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"parcelId\": \"PARCEL_ID_HERE\",\n  \"amount\": 150\n}"
+            }
+          }
+        },
+        {
+          "name": "Payment History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/payment/history", "host": ["{{base_url}}"], "path": ["api", "payment", "history"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/admin/dashboard", "host": ["{{base_url}}"], "path": ["api", "admin", "dashboard"] }
+          }
+        },
+        {
+          "name": "Revenue Report",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/admin/revenue", "host": ["{{base_url}}"], "path": ["api", "admin", "revenue"] }
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/admin/users", "host": ["{{base_url}}"], "path": ["api", "admin", "users"] }
+          }
+        },
+        {
+          "name": "Block User",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/admin/users/:id/block", "host": ["{{base_url}}"], "path": ["api", "admin", "users", ":id", "block"], "variable": [{ "key": "id", "value": "USER_ID_HERE" }] }
+          }
+        },
+        {
+          "name": "Get All Drivers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/admin/drivers", "host": ["{{base_url}}"], "path": ["api", "admin", "drivers"] }
+          }
+        },
+        {
+          "name": "Approve Driver",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/admin/drivers/:id/approve", "host": ["{{base_url}}"], "path": ["api", "admin", "drivers", ":id", "approve"], "variable": [{ "key": "id", "value": "DRIVER_ID_HERE" }] }
+          }
+        },
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/admin/orders", "host": ["{{base_url}}"], "path": ["api", "admin", "orders"] }
+          }
+        },
+        {
+          "name": "Assign Driver to Order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/admin/orders/:id/assign-driver", "host": ["{{base_url}}"], "path": ["api", "admin", "orders", ":id", "assign-driver"], "variable": [{ "key": "id", "value": "ORDER_ID_HERE" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"DRIVER_ID_HERE\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Create Promo Code",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/admin/promo", "host": ["{{base_url}}"], "path": ["api", "admin", "promo"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE20\",\n  \"discountType\": \"percentage\",\n  \"discountValue\": 20,\n  \"minOrderAmount\": 100,\n  \"maxUses\": 100,\n  \"expiryDate\": \"2026-12-31\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get All Promo Codes",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/admin/promo", "host": ["{{base_url}}"], "path": ["api", "admin", "promo"] }
+          }
+        },
+        {
+          "name": "Update Promo Code",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/admin/promo/:id", "host": ["{{base_url}}"], "path": ["api", "admin", "promo", ":id"], "variable": [{ "key": "id", "value": "PROMO_ID_HERE" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"discountValue\": 25,\n  \"maxUses\": 200\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Promo Code",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/admin/promo/:id", "host": ["{{base_url}}"], "path": ["api", "admin", "promo", ":id"], "variable": [{ "key": "id", "value": "PROMO_ID_HERE" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "Get Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/notifications/", "host": ["{{base_url}}"], "path": ["api", "notifications", ""] }
+          }
+        },
+        {
+          "name": "Mark All Read",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/notifications/mark-read", "host": ["{{base_url}}"], "path": ["api", "notifications", "mark-read"] }
+          }
+        },
+        {
+          "name": "Mark One Read",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/notifications/:id/read", "host": ["{{base_url}}"], "path": ["api", "notifications", ":id", "read"], "variable": [{ "key": "id", "value": "NOTIFICATION_ID_HERE" }] }
+          }
+        },
+        {
+          "name": "Delete Notification",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/notifications/:id", "host": ["{{base_url}}"], "path": ["api", "notifications", ":id"], "variable": [{ "key": "id", "value": "NOTIFICATION_ID_HERE" }] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Address",
+      "item": [
+        {
+          "name": "Get Addresses",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/address/", "host": ["{{base_url}}"], "path": ["api", "address", ""] }
+          }
+        },
+        {
+          "name": "Add Address",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/address/", "host": ["{{base_url}}"], "path": ["api", "address", ""] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Home\",\n  \"address\": \"123 Main St\",\n  \"city\": \"Delhi\",\n  \"state\": \"Delhi\",\n  \"pincode\": \"110001\",\n  \"location\": { \"lat\": 28.6139, \"lng\": 77.2090 }\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": { "raw": "{{base_url}}/api/address/:id", "host": ["{{base_url}}"], "path": ["api", "address", ":id"], "variable": [{ "key": "id", "value": "ADDRESS_ID_HERE" }] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"label\": \"Office\",\n  \"address\": \"456 Work St\",\n  \"city\": \"Noida\",\n  \"state\": \"UP\",\n  \"pincode\": \"201301\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+            "url": { "raw": "{{base_url}}/api/address/:id", "host": ["{{base_url}}"], "path": ["api", "address", ":id"], "variable": [{ "key": "id", "value": "ADDRESS_ID_HERE" }] }
+          }
+        }
+      ]
+    }
+  ]
+}
