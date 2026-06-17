@@ -21,7 +21,7 @@ const app = express();
 // Security & logging
 app.use(helmet());
 app.use(morgan("dev"));
-app.use(cors({ origin: process.env.CLIENT_URL || "*", credentials: true }));
+app.use(cors({ origin: "*", credentials: false }));
 
 // Rate limiting
 const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100 });
