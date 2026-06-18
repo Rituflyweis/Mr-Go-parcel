@@ -119,8 +119,6 @@ const parcelSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-parcelSchema.index({ pickupAddress: "2dsphere" });
-parcelSchema.index({ deliveryAddress: "2dsphere" });
 
 parcelSchema.pre("save", function (next) {
   if (!this.trackingId) {
