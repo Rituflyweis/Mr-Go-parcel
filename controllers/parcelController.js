@@ -186,7 +186,7 @@ const cancelParcel = async (req, res) => {
 
     const cancellable = ["pending", "accepted"];
     if (!cancellable.includes(parcel.status)) {
-      return errorResponse(res, 400, "Cannot cancel parcel at this stage");
+      return errorResponse(res, 422, "Cannot cancel parcel at this stage");
     }
 
     parcel.status = "cancelled";
@@ -212,8 +212,8 @@ const rateDelivery = async (req, res) => {
     const { rating, review } = req.body;
     const parcel = await Parcel.findById(req.params.id);
     if (!parcel) return errorResponse(res, 404, "Parcel not found");
-    if (parcel.status !== "delivered") return errorResponse(res, 400, "Can only rate delivered parcels");
-    if (parcel.customerRating) return errorResponse(res, 400, "Already rated");
+    if (parcel.status !== "delivered") return errorResponse(res, 422, "Can only rate delivered parcels");
+    if (parcel.customerRating) return errorResponse(res, 409, "Already rated");
 
     parcel.customerRating = rating;
     parcel.customerReview = review;

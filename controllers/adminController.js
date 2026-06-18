@@ -141,7 +141,8 @@ const assignDriver = async (req, res) => {
   try {
     const { driverId } = req.body;
     const driver = await Driver.findById(driverId);
-    if (!driver || !driver.isApproved) return errorResponse(res, 400, "Driver not found or not approved");
+    if (!driver) return errorResponse(res, 404, "Driver not found");
+    if (!driver.isApproved) return errorResponse(res, 403, "Driver not approved");
 
     const parcel = await Parcel.findByIdAndUpdate(
       req.params.id,

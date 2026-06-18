@@ -9,7 +9,7 @@ const registerDriver = async (req, res) => {
     const { vehicleType, vehicleNumber, vehicleModel, licenseNumber, aadharNumber, panNumber } = req.body;
 
     const existing = await Driver.findOne({ user: req.user._id });
-    if (existing) return errorResponse(res, 400, "Driver profile already exists");
+    if (existing) return errorResponse(res, 409, "Driver profile already exists");
 
     const files = req.files || {};
     const driver = await Driver.create({
@@ -104,7 +104,7 @@ const acceptOrder = async (req, res) => {
 
     const parcel = await Parcel.findById(req.params.parcelId);
     if (!parcel) return errorResponse(res, 404, "Parcel not found");
-    if (parcel.status !== "pending") return errorResponse(res, 400, "Order is no longer available");
+    if (parcel.status !== "pending") return errorResponse(res, 409, "Order is no longer available");
 
     parcel.driver = driver._id;
     parcel.status = "driver_assigned";
@@ -139,7 +139,7 @@ const updateOrderStatus = async (req, res) => {
     };
 
     if (!validTransitions[parcel.status]?.includes(status)) {
-      return errorResponse(res, 400, `Cannot transition from '${parcel.status}' to '${status}'`);
+      return errorResponse(res, 422, `Cannot transition from '${parcel.status}' to '${status}'`);
     }
 
     parcel.status = status;

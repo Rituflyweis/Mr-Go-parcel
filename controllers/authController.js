@@ -10,7 +10,7 @@ const register = async (req, res) => {
     const { name, email, phone, password, role } = req.body;
 
     const existing = await User.findOne({ $or: [{ email }, { phone }] });
-    if (existing) return errorResponse(res, 400, "Email or phone already registered");
+    if (existing) return errorResponse(res, 409, "Email or phone already registered");
 
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min
@@ -51,8 +51,8 @@ const verifyOTP = async (req, res) => {
     if (!user) return errorResponse(res, 404, "User not found");
 
     const isDefaultOTP = otp === "1234";
-    if (!isDefaultOTP && user.otp !== otp) return errorResponse(res, 400, "Invalid OTP");
-    if (!isDefaultOTP && new Date() > user.otpExpiry) return errorResponse(res, 400, "OTP expired");
+    if (!isDefaultOTP && user.otp !== otp) return errorResponse(res, 422, "Invalid OTP");
+    if (!isDefaultOTP && new Date() > user.otpExpiry) return errorResponse(res, 410, "OTP expired");
 
     user.isVerified = true;
     user.otp = undefined;
@@ -72,7 +72,7 @@ const login = async (req, res) => {
     const { email, phone, password } = req.body;
 
     if (!password || (!email && !phone)) {
-      return errorResponse(res, 400, "Please provide email/phone and password");
+      return errorResponse(res, 422, "Please provide email/phone and password");
     }
 
     const query = email ? { email } : { phone };
@@ -130,8 +130,8 @@ const resetPassword = async (req, res) => {
     const user = await User.findById(userId).select("+otp +otpExpiry");
     if (!user) return errorResponse(res, 404, "User not found");
 
-    if (user.otp !== otp) return errorResponse(res, 400, "Invalid OTP");
-    if (new Date() > user.otpExpiry) return errorResponse(res, 400, "OTP expired");
+    if (user.otp !== otp) return errorResponse(res, 422, "Invalid OTP");
+    if (new Date() > user.otpExpiry) return errorResponse(res, 410, "OTP expired");
 
     user.password = newPassword;
     user.otp = undefined;
@@ -182,7 +182,7 @@ const changePassword = async (req, res) => {
     const user = await User.findById(req.user._id).select("+password");
 
     const isMatch = await user.matchPassword(currentPassword);
-    if (!isMatch) return errorResponse(res, 400, "Current password is incorrect");
+    if (!isMatch) return errorResponse(res, 401, "Current password is incorrect");
 
     user.password = newPassword;
     await user.save();

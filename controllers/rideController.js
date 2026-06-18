@@ -39,7 +39,7 @@ const getFareEstimate = async (req, res) => {
   try {
     const { vehicleCategory = "sedan", distance, duration = 20, rideType = "on_demand" } = req.body;
 
-    if (!distance) return errorResponse(res, 400, "distance is required (in km)");
+    if (!distance) return errorResponse(res, 422, "distance is required (in km)");
 
     const fare = calculateFare(vehicleCategory, distance, duration, rideType);
 
@@ -77,7 +77,7 @@ const bookRide = async (req, res) => {
     } = req.body;
 
     if (!rideType || !pickupLocation || !dropLocation) {
-      return errorResponse(res, 400, "rideType, pickupLocation and dropLocation are required");
+      return errorResponse(res, 422, "rideType, pickupLocation and dropLocation are required");
     }
 
     if (rideType === "herdrive") {
@@ -187,10 +187,10 @@ const cancelRide = async (req, res) => {
       return errorResponse(res, 403, "Access denied");
     }
     if (["completed", "cancelled"].includes(ride.status)) {
-      return errorResponse(res, 400, `Ride already ${ride.status}`);
+      return errorResponse(res, 409, `Ride already ${ride.status}`);
     }
     if (ride.status === "ride_started") {
-      return errorResponse(res, 400, "Cannot cancel a ride that has already started");
+      return errorResponse(res, 422, "Cannot cancel a ride that has already started");
     }
 
     ride.status = "cancelled";
@@ -209,7 +209,7 @@ const rateRide = async (req, res) => {
   try {
     const { rating, review } = req.body;
     if (!rating || rating < 1 || rating > 5) {
-      return errorResponse(res, 400, "Rating must be between 1 and 5");
+      return errorResponse(res, 422, "Rating must be between 1 and 5");
     }
 
     const ride = await Ride.findById(req.params.id);
@@ -218,9 +218,9 @@ const rateRide = async (req, res) => {
       return errorResponse(res, 403, "Access denied");
     }
     if (ride.status !== "completed") {
-      return errorResponse(res, 400, "Can only rate completed rides");
+      return errorResponse(res, 422, "Can only rate completed rides");
     }
-    if (ride.rating) return errorResponse(res, 400, "Ride already rated");
+    if (ride.rating) return errorResponse(res, 409, "Ride already rated");
 
     ride.rating = rating;
     ride.review = review;
@@ -266,7 +266,7 @@ const acceptRide = async (req, res) => {
 
     const ride = await Ride.findById(req.params.id);
     if (!ride) return errorResponse(res, 404, "Ride not found");
-    if (ride.status !== "searching") return errorResponse(res, 400, "Ride no longer available");
+    if (ride.status !== "searching") return errorResponse(res, 409, "Ride no longer available");
 
     ride.driver = driver._id;
     ride.status = "driver_assigned";
@@ -300,7 +300,7 @@ const updateRideStatus = async (req, res) => {
       return errorResponse(res, 403, "Not your ride");
     }
     if (validTransitions[ride.status] !== status) {
-      return errorResponse(res, 400, `Invalid transition: ${ride.status} → ${status}`);
+      return errorResponse(res, 422, `Invalid transition: ${ride.status} → ${status}`);
     }
 
     ride.status = status;

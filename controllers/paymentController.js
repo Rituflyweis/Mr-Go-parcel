@@ -17,7 +17,7 @@ const createPaymentOrder = async (req, res) => {
     const { parcelId } = req.body;
     const parcel = await Parcel.findById(parcelId);
     if (!parcel) return errorResponse(res, 404, "Parcel not found");
-    if (parcel.paymentStatus === "paid") return errorResponse(res, 400, "Already paid");
+    if (parcel.paymentStatus === "paid") return errorResponse(res, 409, "Already paid");
 
     const options = {
       amount: Math.round(parcel.pricing.total * 100), // in paise
@@ -61,7 +61,7 @@ const verifyPayment = async (req, res) => {
       .digest("hex");
 
     if (expectedSignature !== razorpay_signature) {
-      return errorResponse(res, 400, "Invalid payment signature");
+      return errorResponse(res, 422, "Invalid payment signature");
     }
 
     await Payment.findOneAndUpdate(
@@ -89,7 +89,7 @@ const verifyPayment = async (req, res) => {
 const addWalletBalance = async (req, res) => {
   try {
     const { amount } = req.body;
-    if (!amount || amount <= 0) return errorResponse(res, 400, "Invalid amount");
+    if (!amount || amount <= 0) return errorResponse(res, 422, "Invalid amount");
 
     // In real app: create razorpay order then verify
     const user = await User.findByIdAndUpdate(
@@ -113,7 +113,7 @@ const payFromWallet = async (req, res) => {
 
     const user = await User.findById(req.user._id);
     if (user.wallet < parcel.pricing.total) {
-      return errorResponse(res, 400, "Insufficient wallet balance");
+      return errorResponse(res, 402, "Insufficient wallet balance");
     }
 
     user.wallet -= parcel.pricing.total;
