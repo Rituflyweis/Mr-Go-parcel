@@ -16,7 +16,14 @@
     { "key": "DRIVER_ID", "value": "", "type": "string" },
     { "key": "ADDRESS_ID", "value": "", "type": "string" },
     { "key": "PROMO_ID", "value": "", "type": "string" },
-    { "key": "RIDE_ID", "value": "", "type": "string" }
+    { "key": "RIDE_ID", "value": "", "type": "string" },
+    { "key": "MERCHANT_ID", "value": "", "type": "string" },
+    { "key": "APIKEY_ID", "value": "", "type": "string" },
+    { "key": "FLEET_ID", "value": "", "type": "string" },
+    { "key": "PARTNER_ID", "value": "", "type": "string" },
+    { "key": "TRAINING_ID", "value": "", "type": "string" },
+    { "key": "ENROLLMENT_ID", "value": "", "type": "string" },
+    { "key": "MERCHANT_TOKEN", "value": "", "type": "string" }
   ],
   "item": [
     {
@@ -1024,6 +1031,446 @@
               "options": { "raw": { "language": "json" } }
             },
             "description": "Valid transitions:\ndriver_assigned → driver_arriving\ndriver_arriving → ride_started\nride_started → completed"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Promo",
+      "item": [
+        {
+          "name": "Get Available Promos",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/promo/available", "host": ["{{BASE_URL}}"], "path": ["api", "promo", "available"] }
+          }
+        },
+        {
+          "name": "Apply Promo Code",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/promo/apply", "host": ["{{BASE_URL}}"], "path": ["api", "promo", "apply"] },
+            "body": { "mode": "raw", "raw": "{\n  \"code\": \"SAVE20\",\n  \"orderAmount\": 300\n}", "options": { "raw": { "language": "json" } } }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Review",
+      "item": [
+        {
+          "name": "Review Parcel Delivery",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/review/parcel/{{PARCEL_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "review", "parcel", "{{PARCEL_ID}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"rating\": 5,\n  \"review\": \"Excellent delivery, very fast!\",\n  \"tags\": [\"fast\", \"careful\", \"polite\"]\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Review Ride",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/review/ride/{{RIDE_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "review", "ride", "{{RIDE_ID}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"rating\": 5,\n  \"review\": \"Very smooth ride, driver was polite!\"\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Get Driver Reviews",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/review/driver/{{DRIVER_ID}}?page=1&limit=10", "host": ["{{BASE_URL}}"], "path": ["api", "review", "driver", "{{DRIVER_ID}}"], "query": [{ "key": "page", "value": "1" }, { "key": "limit", "value": "10" }] }
+          }
+        },
+        {
+          "name": "My Reviews",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/review/my-reviews", "host": ["{{BASE_URL}}"], "path": ["api", "review", "my-reviews"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Merchant",
+      "item": [
+        {
+          "name": "Register Merchant",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) { pm.collectionVariables.set('MERCHANT_ID', pm.response.json().data.merchant._id); }"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/register", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "register"] },
+            "body": { "mode": "formdata", "formdata": [
+              { "key": "businessName", "value": "My Ecommerce Store", "type": "text" },
+              { "key": "businessType", "value": "ecommerce", "type": "text", "description": "ecommerce | retail | restaurant | pharmacy | grocery | logistics | other" },
+              { "key": "gstin", "value": "27AAPFU0939F1ZV", "type": "text" },
+              { "key": "contactPerson", "value": "Rahul Sharma", "type": "text" },
+              { "key": "contactPhone", "value": "9876543201", "type": "text" },
+              { "key": "website", "value": "https://mystore.com", "type": "text" },
+              { "key": "logo", "type": "file", "src": "" }
+            ]}
+          }
+        },
+        {
+          "name": "Get Merchant Profile",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/profile", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "profile"] }
+          }
+        },
+        {
+          "name": "Update Merchant Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/profile", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "profile"] },
+            "body": { "mode": "raw", "raw": "{\n  \"businessName\": \"My Updated Store\",\n  \"website\": \"https://updatedstore.com\"\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Merchant Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/dashboard", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "dashboard"] }
+          }
+        },
+        {
+          "name": "Create API Key",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) { pm.collectionVariables.set('APIKEY_ID', pm.response.json().data.apiKey._id); }"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/api-keys", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "api-keys"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Production Key\",\n  \"environment\": \"production\",\n  \"permissions\": [\"orders:read\", \"orders:write\", \"tracking:read\"],\n  \"webhookUrl\": \"https://mystore.com/webhooks/goparcel\"\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Get API Keys",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/api-keys", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "api-keys"] }
+          }
+        },
+        {
+          "name": "Toggle API Key",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/api-keys/{{APIKEY_ID}}/toggle", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "api-keys", "{{APIKEY_ID}}", "toggle"] }
+          }
+        },
+        {
+          "name": "Delete API Key",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/api-keys/{{APIKEY_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "api-keys", "{{APIKEY_ID}}"] }
+          }
+        },
+        {
+          "name": "Add Driver to Fleet",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) { pm.collectionVariables.set('FLEET_ID', pm.response.json().data.fleet._id); }"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/fleet/add", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "fleet", "add"] },
+            "body": { "mode": "raw", "raw": "{\n  \"driverId\": \"{{DRIVER_ID}}\",\n  \"assignedZone\": \"Mumbai North\",\n  \"shift\": \"morning\",\n  \"shiftStart\": \"09:00\",\n  \"shiftEnd\": \"18:00\"\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Get Fleet",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/fleet?status=active&page=1&limit=10", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "fleet"], "query": [{ "key": "status", "value": "active", "description": "active | inactive | suspended" }, { "key": "page", "value": "1" }, { "key": "limit", "value": "10" }] }
+          }
+        },
+        {
+          "name": "Fleet Stats",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/fleet/stats", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "fleet", "stats"] }
+          }
+        },
+        {
+          "name": "Update Fleet Driver",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/fleet/{{FLEET_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "fleet", "{{FLEET_ID}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"assignedZone\": \"Mumbai South\",\n  \"shift\": \"afternoon\",\n  \"status\": \"active\"\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Remove Driver from Fleet",
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/merchant/fleet/{{FLEET_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "merchant", "fleet", "{{FLEET_ID}}"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Partner",
+      "item": [
+        {
+          "name": "Partner Sign Up",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) { pm.collectionVariables.set('PARTNER_ID', pm.response.json().data.partner._id); }"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/partner/signup", "host": ["{{BASE_URL}}"], "path": ["api", "partner", "signup"] },
+            "body": { "mode": "raw", "raw": "{\n  \"partnerType\": \"agency\",\n  \"companyName\": \"Swift Logistics\",\n  \"contactPerson\": \"Ramesh Kumar\",\n  \"contactPhone\": \"9812345678\",\n  \"contactEmail\": \"ramesh@swiftlogistics.com\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\",\n  \"serviceAreas\": [\"Mumbai\", \"Pune\", \"Nashik\"],\n  \"expectedMonthlyOrders\": 500,\n  \"hasOwnVehicles\": true,\n  \"vehicleCount\": 10,\n  \"experience\": \"5 years in delivery\"\n}", "options": { "raw": { "language": "json" } },
+            "description": "partnerType: individual | agency | corporate | franchise" }
+          }
+        },
+        {
+          "name": "Partner Status",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/partner/status", "host": ["{{BASE_URL}}"], "path": ["api", "partner", "status"] }
+          }
+        },
+        {
+          "name": "Update Partner Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/partner/profile", "host": ["{{BASE_URL}}"], "path": ["api", "partner", "profile"] },
+            "body": { "mode": "raw", "raw": "{\n  \"vehicleCount\": 15,\n  \"serviceAreas\": [\"Mumbai\", \"Pune\", \"Nashik\", \"Aurangabad\"]\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Partner Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/partner/dashboard", "host": ["{{BASE_URL}}"], "path": ["api", "partner", "dashboard"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Training",
+      "item": [
+        {
+          "name": "Get All Trainings",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/training?category=delivery_basics&level=beginner", "host": ["{{BASE_URL}}"], "path": ["api", "training"], "query": [
+              { "key": "category", "value": "delivery_basics", "disabled": true, "description": "delivery_basics | safety | customer_service | app_usage | women_empowerment | vehicle_maintenance" },
+              { "key": "level",    "value": "beginner",        "disabled": true, "description": "beginner | intermediate | advanced" },
+              { "key": "targetRole","value": "driver",         "disabled": true, "description": "driver | partner | all" }
+            ]}
+          }
+        },
+        {
+          "name": "Get Training By ID",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/training/{{TRAINING_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "training", "{{TRAINING_ID}}"] }
+          }
+        },
+        {
+          "name": "Enroll in Training",
+          "event": [{ "listen": "test", "script": { "exec": ["if (pm.response.code === 201) { pm.collectionVariables.set('ENROLLMENT_ID', pm.response.json().data.enrollment._id); }"] } }],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/training/{{TRAINING_ID}}/enroll", "host": ["{{BASE_URL}}"], "path": ["api", "training", "{{TRAINING_ID}}", "enroll"] }
+          }
+        },
+        {
+          "name": "Update Progress",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/training/{{TRAINING_ID}}/progress", "host": ["{{BASE_URL}}"], "path": ["api", "training", "{{TRAINING_ID}}", "progress"] },
+            "body": { "mode": "raw", "raw": "{\n  \"progress\": 50,\n  \"completedModuleId\": \"MODULE_ID_HERE\"\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "My Enrollments",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/training/my-enrollments", "host": ["{{BASE_URL}}"], "path": ["api", "training", "my-enrollments"] }
+          }
+        },
+        {
+          "name": "My Certificates",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/training/certificates", "host": ["{{BASE_URL}}"], "path": ["api", "training", "certificates"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Women Program",
+      "item": [
+        {
+          "name": "Apply to HerDrive Program",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{DRIVER_TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/women-program/apply", "host": ["{{BASE_URL}}"], "path": ["api", "women-program", "apply"] },
+            "body": { "mode": "raw", "raw": "{\n  \"programType\": \"herdrive\",\n  \"workPreference\": \"day_only\",\n  \"emergencyContact\": \"9876543200\"\n}", "options": { "raw": { "language": "json" } },
+            "description": "programType: herdrive | training_only | mentorship\nworkPreference: day_only | night_only | flexible" }
+          }
+        },
+        {
+          "name": "Program Status",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{DRIVER_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/women-program/status", "host": ["{{BASE_URL}}"], "path": ["api", "women-program", "status"] }
+          }
+        },
+        {
+          "name": "Program Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{DRIVER_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/women-program/dashboard", "host": ["{{BASE_URL}}"], "path": ["api", "women-program", "dashboard"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Earnings (Driver)",
+      "item": [
+        {
+          "name": "Earnings Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{DRIVER_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/earnings/dashboard", "host": ["{{BASE_URL}}"], "path": ["api", "earnings", "dashboard"] }
+          }
+        },
+        {
+          "name": "Earnings History",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{DRIVER_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/earnings/history?period=month&page=1&limit=20", "host": ["{{BASE_URL}}"], "path": ["api", "earnings", "history"], "query": [
+              { "key": "period", "value": "month", "description": "today | week | month | all" },
+              { "key": "page",   "value": "1" },
+              { "key": "limit",  "value": "20" }
+            ]}
+          }
+        },
+        {
+          "name": "Earning Tips",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/earnings/tips", "host": ["{{BASE_URL}}"], "path": ["api", "earnings", "tips"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Extended",
+      "item": [
+        {
+          "name": "Get All Merchants",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/merchants?page=1&limit=10", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "merchants"], "query": [
+              { "key": "isApproved", "value": "false", "disabled": true, "description": "true | false" },
+              { "key": "search",     "value": "",      "disabled": true },
+              { "key": "page",       "value": "1" },
+              { "key": "limit",      "value": "10" }
+            ]}
+          }
+        },
+        {
+          "name": "Approve / Reject Merchant",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/merchants/{{MERCHANT_ID}}/approve", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "merchants", "{{MERCHANT_ID}}", "approve"] },
+            "body": { "mode": "raw", "raw": "{\n  \"isApproved\": true,\n  \"commissionRate\": 8\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Get All Partners",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/partners?page=1&limit=10", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "partners"], "query": [
+              { "key": "status", "value": "pending", "disabled": true, "description": "pending | under_review | approved | rejected" },
+              { "key": "search", "value": "",         "disabled": true },
+              { "key": "page",   "value": "1" },
+              { "key": "limit",  "value": "10" }
+            ]}
+          }
+        },
+        {
+          "name": "Review Partner Application",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/partners/{{PARTNER_ID}}/review", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "partners", "{{PARTNER_ID}}", "review"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\",\n  \"commissionRate\": 10\n}", "options": { "raw": { "language": "json" } },
+            "description": "status: approved | rejected | under_review" }
+          }
+        },
+        {
+          "name": "Create Training",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/training", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "training"] },
+            "body": { "mode": "raw", "raw": "{\n  \"title\": \"Advanced Delivery Techniques\",\n  \"description\": \"For experienced drivers looking to earn more\",\n  \"category\": \"delivery_basics\",\n  \"targetRole\": \"driver\",\n  \"level\": \"advanced\",\n  \"totalDuration\": 60,\n  \"certificateAwarded\": true,\n  \"certificateName\": \"Go Parcel Advanced Delivery Expert\",\n  \"isActive\": true,\n  \"modules\": [\n    { \"title\": \"Module 1\", \"description\": \"Advanced pickup strategies\", \"duration\": 20, \"order\": 1 },\n    { \"title\": \"Module 2\", \"description\": \"Optimizing your route\", \"duration\": 20, \"order\": 2 },\n    { \"title\": \"Module 3\", \"description\": \"Earning more with bonuses\", \"duration\": 20, \"order\": 3 }\n  ]\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Update Training",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/training/{{TRAINING_ID}}", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "training", "{{TRAINING_ID}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"isActive\": false\n}", "options": { "raw": { "language": "json" } } }
+          }
+        },
+        {
+          "name": "Get Women Program Applications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/women-program?page=1&limit=10", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "women-program"], "query": [
+              { "key": "status", "value": "applied", "disabled": true, "description": "applied | under_review | active | inactive | rejected" },
+              { "key": "page",   "value": "1" },
+              { "key": "limit",  "value": "10" }
+            ]}
+          }
+        },
+        {
+          "name": "Review Women Program Application",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/women-program/{{PARTNER_ID}}/review", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "women-program", "{{PARTNER_ID}}", "review"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"active\",\n  \"benefits\": {\n    \"higherEarnings\": true,\n    \"priorityOrders\": true,\n    \"safetyKit\": true,\n    \"freeTraining\": true,\n    \"insuranceCover\": false\n  }\n}", "options": { "raw": { "language": "json" } },
+            "description": "status: active | rejected | under_review" }
           }
         }
       ]

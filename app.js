@@ -18,6 +18,11 @@ const addressRoutes = require("./routes/addressRoutes");
 const rideRoutes = require("./routes/rideRoutes");
 const promoRoutes = require("./routes/promoRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
+const merchantRoutes = require("./routes/merchantRoutes");
+const partnerRoutes = require("./routes/partnerRoutes");
+const trainingRoutes = require("./routes/trainingRoutes");
+const womenProgramRoutes = require("./routes/womenProgramRoutes");
+const earningRoutes = require("./routes/earningRoutes");
 
 const app = express();
 
@@ -51,6 +56,11 @@ app.use("/api/address", addressRoutes);
 app.use("/api/ride", rideRoutes);
 app.use("/api/promo", promoRoutes);
 app.use("/api/review", reviewRoutes);
+app.use("/api/merchant", merchantRoutes);
+app.use("/api/partner", partnerRoutes);
+app.use("/api/training", trainingRoutes);
+app.use("/api/women-program", womenProgramRoutes);
+app.use("/api/earnings", earningRoutes);
 
 // 404 handler
 app.use((req, res) => res.status(404).json({ success: false, message: "Route not found" }));
