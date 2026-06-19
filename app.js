@@ -16,6 +16,8 @@ const adminRoutes = require("./routes/adminRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const addressRoutes = require("./routes/addressRoutes");
 const rideRoutes = require("./routes/rideRoutes");
+const promoRoutes = require("./routes/promoRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
 
 const app = express();
 
@@ -47,6 +49,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/address", addressRoutes);
 app.use("/api/ride", rideRoutes);
+app.use("/api/promo", promoRoutes);
+app.use("/api/review", reviewRoutes);
 
 // 404 handler
 app.use((req, res) => res.status(404).json({ success: false, message: "Route not found" }));
