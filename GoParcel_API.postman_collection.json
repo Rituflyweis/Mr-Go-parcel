@@ -216,10 +216,10 @@
             "url": { "raw": "{{BASE_URL}}/api/parcel/price-estimate", "host": ["{{BASE_URL}}"], "path": ["api", "parcel", "price-estimate"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"vehicleType\": \"bike\",\n  \"weight\": 2,\n  \"distance\": 10\n}",
+              "raw": "{\n  \"vehicleType\": \"bike\",\n  \"weight\": 2,\n  \"pickupLat\": 19.0760,\n  \"pickupLng\": 72.8777,\n  \"dropLat\": 19.1197,\n  \"dropLng\": 72.8296\n}",
               "options": { "raw": { "language": "json" } }
             },
-            "description": "vehicleType: bike | auto | mini_truck | tempo | truck"
+            "description": "vehicleType: bike | auto | mini_truck | tempo | truck\nPass pickupLat/pickupLng/dropLat/dropLng → backend auto calculates distance via Google Maps\nReturns pricing for all vehicle types + distanceKm + durationMin\nisMock: true means Google Maps key not set yet"
           }
         },
         {
@@ -360,7 +360,8 @@
               "mode": "raw",
               "raw": "{\n  \"latitude\": 19.0760,\n  \"longitude\": 72.8777\n}",
               "options": { "raw": { "language": "json" } }
-            }
+            },
+            "description": "Driver sends GPS every 5 seconds\nResponse includes eta: { etaMin, etaText, distanceKm } to active order pickup/drop\neta is null if driver has no active order"
           }
         },
         {
@@ -832,10 +833,10 @@
             "url": { "raw": "{{BASE_URL}}/api/ride/estimate", "host": ["{{BASE_URL}}"], "path": ["api", "ride", "estimate"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"vehicleCategory\": \"sedan\",\n  \"distance\": 12,\n  \"duration\": 25,\n  \"rideType\": \"on_demand\"\n}",
+              "raw": "{\n  \"vehicleCategory\": \"sedan\",\n  \"rideType\": \"on_demand\",\n  \"pickupLat\": 19.0760,\n  \"pickupLng\": 72.8777,\n  \"dropLat\": 19.1197,\n  \"dropLng\": 72.8296\n}",
               "options": { "raw": { "language": "json" } }
             },
-            "description": "rideType: on_demand | carpool | herdrive | night_safe | airport_transfer\nvehicleCategory: bike | auto | sedan | suv | premium\nReturns fare for all vehicle options"
+            "description": "rideType: on_demand | carpool | herdrive | night_safe | airport_transfer\nvehicleCategory: bike | auto | sedan | suv | premium\nPass pickupLat/pickupLng/dropLat/dropLng → Google Maps auto calculates distance + duration\nReturns fare for ALL vehicle categories in allOptions[]\nisMock: true means Google Maps key not set (uses approximate calculation)"
           }
         },
         {
@@ -857,7 +858,7 @@
             "url": { "raw": "{{BASE_URL}}/api/ride/book", "host": ["{{BASE_URL}}"], "path": ["api", "ride", "book"] },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rideType\": \"on_demand\",\n  \"pickupLocation\": {\n    \"address\": \"123, Green Park Colony, Mumbai\",\n    \"city\": \"Mumbai\",\n    \"lat\": 19.0760,\n    \"lng\": 72.8777\n  },\n  \"dropLocation\": {\n    \"address\": \"456, Andheri West, Mumbai\",\n    \"city\": \"Mumbai\",\n    \"lat\": 19.1197,\n    \"lng\": 72.8296\n  },\n  \"vehicleCategory\": \"sedan\",\n  \"passengers\": 1,\n  \"paymentMethod\": \"online\",\n  \"distance\": 12,\n  \"duration\": 25\n}",
+              "raw": "{\n  \"rideType\": \"on_demand\",\n  \"pickupLocation\": {\n    \"address\": \"123, Green Park Colony, Mumbai\",\n    \"city\": \"Mumbai\",\n    \"lat\": 19.0760,\n    \"lng\": 72.8777\n  },\n  \"dropLocation\": {\n    \"address\": \"456, Andheri West, Mumbai\",\n    \"city\": \"Mumbai\",\n    \"lat\": 19.1197,\n    \"lng\": 72.8296\n  },\n  \"vehicleCategory\": \"sedan\",\n  \"passengers\": 1,\n  \"paymentMethod\": \"online\"\n}",
               "options": { "raw": { "language": "json" } }
             }
           }
@@ -1031,6 +1032,109 @@
               "options": { "raw": { "language": "json" } }
             },
             "description": "Valid transitions:\ndriver_assigned → driver_arriving\ndriver_arriving → ride_started\nride_started → completed"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Maps & Location",
+      "item": [
+        {
+          "name": "Parcel Price Estimate (with coords)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/parcel/price-estimate", "host": ["{{BASE_URL}}"], "path": ["api", "parcel", "price-estimate"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleType\": \"bike\",\n  \"weight\": 2,\n  \"pickupLat\": 19.0760,\n  \"pickupLng\": 72.8777,\n  \"dropLat\": 19.1197,\n  \"dropLng\": 72.8296\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Mumbai: BKC → Andheri West (~7.2km)\nBackend auto-calculates distance via Google Maps\nReturns pricing for all vehicle types + distanceKm + durationMin"
+          }
+        },
+        {
+          "name": "Parcel Price Estimate — Delhi Route",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/parcel/price-estimate", "host": ["{{BASE_URL}}"], "path": ["api", "parcel", "price-estimate"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleType\": \"auto\",\n  \"weight\": 5,\n  \"pickupLat\": 28.5672,\n  \"pickupLng\": 77.2399,\n  \"dropLat\": 28.6315,\n  \"dropLng\": 77.2195\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Delhi: Lajpat Nagar → Connaught Place (~8km)"
+          }
+        },
+        {
+          "name": "Parcel Price Estimate — Bengaluru Route",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/parcel/price-estimate", "host": ["{{BASE_URL}}"], "path": ["api", "parcel", "price-estimate"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleType\": \"mini_truck\",\n  \"weight\": 10,\n  \"pickupLat\": 12.9716,\n  \"pickupLng\": 77.5946,\n  \"dropLat\": 12.9784,\n  \"dropLng\": 77.6412\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Bengaluru: MG Road → Indiranagar (~3.5km)"
+          }
+        },
+        {
+          "name": "Ride Fare Estimate — Mumbai (All Vehicles)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/ride/estimate", "host": ["{{BASE_URL}}"], "path": ["api", "ride", "estimate"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rideType\": \"on_demand\",\n  \"pickupLat\": 19.0595,\n  \"pickupLng\": 72.8656,\n  \"dropLat\": 19.0896,\n  \"dropLng\": 72.8656\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Mumbai: BKC → Airport\nReturns fare for ALL vehicle categories: bike, auto, sedan, suv, premium\nWith auto-calculated distance from Google Maps"
+          }
+        },
+        {
+          "name": "Ride Fare Estimate — HerDrive Delhi",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/ride/estimate", "host": ["{{BASE_URL}}"], "path": ["api", "ride", "estimate"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rideType\": \"herdrive\",\n  \"vehicleCategory\": \"sedan\",\n  \"pickupLat\": 28.5672,\n  \"pickupLng\": 77.2399,\n  \"dropLat\": 28.6315,\n  \"dropLng\": 77.2195\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Delhi: Lajpat Nagar → Connaught Place\nHerDrive has 10% surcharge"
+          }
+        },
+        {
+          "name": "Ride Fare Estimate — Airport Transfer",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/ride/estimate", "host": ["{{BASE_URL}}"], "path": ["api", "ride", "estimate"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rideType\": \"airport_transfer\",\n  \"vehicleCategory\": \"suv\",\n  \"pickupLat\": 12.9716,\n  \"pickupLng\": 77.5946,\n  \"dropLat\": 13.1986,\n  \"dropLng\": 77.7066\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Bengaluru: MG Road → Kempegowda Airport (~35km)\nAirport Transfer has 30% surcharge"
+          }
+        },
+        {
+          "name": "Driver Update Location (with ETA)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Authorization", "value": "Bearer {{DRIVER_TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/driver/location", "host": ["{{BASE_URL}}"], "path": ["api", "driver", "location"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 19.0760,\n  \"longitude\": 72.8777\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Driver sends GPS every 5 seconds\nResponse: { location, eta: { etaMin, etaText, distanceKm } }\neta calculated to active order pickup/delivery point via Google Maps\neta is null if no active order"
           }
         }
       ]

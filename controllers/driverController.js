@@ -2,6 +2,7 @@ const Driver = require("../models/Driver");
 const User = require("../models/User");
 const Parcel = require("../models/Parcel");
 const { successResponse, errorResponse } = require("../utils/response");
+const { getETA } = require("../utils/maps");
 
 // @route POST /api/driver/register
 const registerDriver = async (req, res) => {
@@ -50,7 +51,25 @@ const updateLocation = async (req, res) => {
       { new: true }
     );
     if (!driver) return errorResponse(res, 404, "Driver profile not found");
-    successResponse(res, 200, "Location updated", { location: driver.currentLocation });
+
+    // Calculate ETA to active parcel pickup if driver has an assigned order
+    let eta = null;
+    if (driver.isAvailable === false) {
+      const activeParcel = await Parcel.findOne({
+        driver: driver._id,
+        status: { $in: ["driver_assigned", "picked_up"] },
+      });
+      if (activeParcel) {
+        const dest = activeParcel.status === "driver_assigned"
+          ? activeParcel.pickupAddress
+          : activeParcel.deliveryAddress;
+        if (dest?.location?.coordinates?.length === 2) {
+          eta = await getETA(latitude, longitude, dest.location.coordinates[1], dest.location.coordinates[0]).catch(() => null);
+        }
+      }
+    }
+
+    successResponse(res, 200, "Location updated", { location: driver.currentLocation, eta });
   } catch (error) {
     errorResponse(res, 500, error.message);
   }

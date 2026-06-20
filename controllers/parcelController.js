@@ -3,6 +3,7 @@ const Driver = require("../models/Driver");
 const PromoCode = require("../models/PromoCode");
 const Notification = require("../models/Notification");
 const { successResponse, errorResponse } = require("../utils/response");
+const { getDistanceAndDuration } = require("../utils/maps");
 
 // Pricing logic
 const calculatePrice = (vehicleType, weight, distance) => {
@@ -23,9 +24,38 @@ const calculatePrice = (vehicleType, weight, distance) => {
 // @route POST /api/parcel/price-estimate
 const getPriceEstimate = async (req, res) => {
   try {
-    const { vehicleType, weight, distance } = req.body;
-    const pricing = calculatePrice(vehicleType, weight || 1, distance || 1);
-    successResponse(res, 200, "Price estimated", { pricing });
+    const { vehicleType, weight, pickupLat, pickupLng, dropLat, dropLng, distance: manualDistance } = req.body;
+
+    let distanceKm = manualDistance || 5;
+    let durationMin = 20;
+    let distanceText = `${distanceKm} km`;
+    let isMock = true;
+
+    // Auto-calculate distance if coordinates provided
+    if (pickupLat && pickupLng && dropLat && dropLng) {
+      const result = await getDistanceAndDuration(pickupLat, pickupLng, dropLat, dropLng);
+      distanceKm = result.distanceKm;
+      durationMin = result.durationMin;
+      distanceText = result.distanceText;
+      isMock = result.isMock;
+    }
+
+    const pricing = calculatePrice(vehicleType, weight || 1, distanceKm);
+
+    // Return all vehicle options
+    const allOptions = ["bike", "auto", "mini_truck", "tempo", "truck"].map((v) => ({
+      vehicleType: v,
+      pricing: calculatePrice(v, weight || 1, distanceKm),
+    }));
+
+    successResponse(res, 200, "Price estimated", {
+      distanceKm,
+      durationMin,
+      distanceText,
+      isMock,
+      pricing,
+      allOptions,
+    });
   } catch (error) {
     errorResponse(res, 500, error.message);
   }
@@ -41,8 +71,17 @@ const createParcel = async (req, res) => {
       isInsured, insuranceAmount, promoCode,
     } = req.body;
 
-    // Calculate distance (placeholder — integrate Google Maps API)
-    const distance = req.body.distance || 5;
+    // Auto-calculate distance from coordinates if provided
+    const { pickupLat, pickupLng, dropLat, dropLng } = req.body;
+    let distance = req.body.distance || 5;
+    let estimatedDeliveryTime = "30 mins";
+
+    if (pickupLat && pickupLng && dropLat && dropLng) {
+      const mapResult = await getDistanceAndDuration(pickupLat, pickupLng, dropLat, dropLng);
+      distance = mapResult.distanceKm;
+      estimatedDeliveryTime = mapResult.durationText;
+    }
+
     let pricing = calculatePrice(vehicleType, weight, distance);
 
     // Apply promo code

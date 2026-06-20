@@ -2,6 +2,7 @@ const Ride = require("../models/Ride");
 const Driver = require("../models/Driver");
 const User = require("../models/User");
 const { successResponse, errorResponse } = require("../utils/response");
+const { getDistanceAndDuration, getETA } = require("../utils/maps");
 
 // Fare config per vehicle per km
 const FARE_CONFIG = {
@@ -37,21 +38,44 @@ const calculateFare = (vehicleCategory, distance, duration, rideType, surgeMulti
 // @route POST /api/ride/estimate
 const getFareEstimate = async (req, res) => {
   try {
-    const { vehicleCategory = "sedan", distance, duration = 20, rideType = "on_demand" } = req.body;
+    const {
+      vehicleCategory = "sedan",
+      rideType = "on_demand",
+      pickupLat, pickupLng, dropLat, dropLng,
+      distance: manualDistance,
+      duration: manualDuration,
+    } = req.body;
 
-    if (!distance) return errorResponse(res, 422, "distance is required (in km)");
+    let distanceKm = manualDistance || 5;
+    let durationMin = manualDuration || 20;
+    let distanceText = `${distanceKm} km`;
+    let durationText = `${durationMin} mins`;
+    let isMock = true;
 
-    const fare = calculateFare(vehicleCategory, distance, duration, rideType);
+    // Auto-calculate from coordinates
+    if (pickupLat && pickupLng && dropLat && dropLng) {
+      const result = await getDistanceAndDuration(pickupLat, pickupLng, dropLat, dropLng);
+      distanceKm = result.distanceKm;
+      durationMin = result.durationMin;
+      distanceText = result.distanceText;
+      durationText = result.durationText;
+      isMock = result.isMock;
+    }
+
+    const fare = calculateFare(vehicleCategory, distanceKm, durationMin, rideType);
 
     successResponse(res, 200, "Fare estimated", {
+      distanceKm,
+      durationMin,
+      distanceText,
+      durationText,
+      isMock,
       vehicleCategory,
       rideType,
-      distance,
-      estimatedDuration: duration,
       fare,
       allOptions: Object.keys(FARE_CONFIG).map((v) => ({
         vehicleCategory: v,
-        fare: calculateFare(v, distance, duration, rideType),
+        fare: calculateFare(v, distanceKm, durationMin, rideType),
       })),
     });
   } catch (error) {
@@ -78,6 +102,16 @@ const bookRide = async (req, res) => {
 
     if (!rideType || !pickupLocation || !dropLocation) {
       return errorResponse(res, 422, "rideType, pickupLocation and dropLocation are required");
+    }
+
+    // Auto-calculate distance from coordinates
+    if (pickupLocation.lat && pickupLocation.lng && dropLocation.lat && dropLocation.lng) {
+      const mapResult = await getDistanceAndDuration(
+        pickupLocation.lat, pickupLocation.lng,
+        dropLocation.lat, dropLocation.lng
+      );
+      distance = mapResult.distanceKm;
+      duration = mapResult.durationMin;
     }
 
     if (rideType === "herdrive") {
