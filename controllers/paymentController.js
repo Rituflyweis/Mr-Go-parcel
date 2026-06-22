@@ -5,11 +5,18 @@ const Parcel = require("../models/Parcel");
 const User = require("../models/User");
 const { successResponse, errorResponse } = require("../utils/response");
 
-const getRazorpay = () =>
-  new Razorpay({
+const getRazorpay = () => {
+  if (
+    !process.env.RAZORPAY_KEY_ID ||
+    process.env.RAZORPAY_KEY_ID === "your_razorpay_key_id"
+  ) {
+    throw new Error("Razorpay keys not configured. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in environment variables.");
+  }
+  return new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID,
     key_secret: process.env.RAZORPAY_KEY_SECRET,
   });
+};
 
 // @route POST /api/payment/create-order
 const createPaymentOrder = async (req, res) => {
@@ -116,12 +123,16 @@ const payFromWallet = async (req, res) => {
       return errorResponse(res, 402, "Insufficient wallet balance");
     }
 
-    user.wallet -= parcel.pricing.total;
-    await user.save();
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { $inc: { wallet: -parcel.pricing.total } },
+      { new: true }
+    );
 
-    parcel.paymentStatus = "paid";
-    parcel.paymentMethod = "wallet";
-    await parcel.save();
+    await Parcel.findByIdAndUpdate(parcelId, {
+      paymentStatus: "paid",
+      paymentMethod: "wallet",
+    });
 
     await Payment.create({
       parcel: parcelId,
@@ -133,7 +144,7 @@ const payFromWallet = async (req, res) => {
       paidAt: new Date(),
     });
 
-    successResponse(res, 200, "Payment from wallet successful", { wallet: user.wallet });
+    successResponse(res, 200, "Payment from wallet successful", { wallet: updatedUser.wallet });
   } catch (error) {
     errorResponse(res, 500, error.message);
   }
