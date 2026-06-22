@@ -22,12 +22,11 @@ const apiKeySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-apiKeySchema.pre("save", function (next) {
+apiKeySchema.pre("save", async function () {
   if (!this.key) {
     this.key = "gp_" + this.environment + "_" + crypto.randomBytes(20).toString("hex");
     this.secret = "gps_" + crypto.randomBytes(32).toString("hex");
   }
-  next();
 });
 
 module.exports = mongoose.model("ApiKey", apiKeySchema);

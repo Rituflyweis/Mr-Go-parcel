@@ -98,11 +98,10 @@ const rideSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-rideSchema.pre("save", function (next) {
+rideSchema.pre("save", async function () {
   if (!this.rideId) {
     this.rideId = "RD" + Date.now().toString().slice(-8) + Math.random().toString(36).slice(2, 4).toUpperCase();
   }
-  next();
 });
 
 module.exports = mongoose.model("Ride", rideSchema);

@@ -120,11 +120,10 @@ const parcelSchema = new mongoose.Schema(
 );
 
 
-parcelSchema.pre("save", function (next) {
+parcelSchema.pre("save", async function () {
   if (!this.trackingId) {
     this.trackingId = "GP" + Date.now().toString().slice(-8) + Math.random().toString(36).slice(2, 5).toUpperCase();
   }
-  next();
 });
 
 module.exports = mongoose.model("Parcel", parcelSchema);
