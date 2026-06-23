@@ -7,6 +7,8 @@ const userSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true },
     phone: { type: String, required: true, unique: true },
+    countryCode: { type: String, default: "+1" }, // e.g. +91, +1, +44
+    fullPhone: { type: String, default: "" },       // countryCode + phone e.g. +919876543210
     password: { type: String, required: true, minlength: 6, select: false },
     role: { type: String, enum: ["customer", "driver", "admin"], default: "customer" },
     profileImage: { type: String, default: "" },

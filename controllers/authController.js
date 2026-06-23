@@ -7,21 +7,25 @@ const sendEmail = require("../utils/sendEmail");
 // @route POST /api/auth/register
 const register = async (req, res) => {
   try {
-    const { name, email, phone, password, role } = req.body;
+    const { name, email, phone, countryCode = "+1", password, role } = req.body;
 
     const existing = await User.findOne({ $or: [{ email }, { phone }] });
     if (existing) return errorResponse(res, 409, "Email or phone already registered");
 
     const otp = generateOTP();
-    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 min
+    const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
 
-    // Generate referral code
     const referralCode = name.slice(0, 3).toUpperCase() + Date.now().toString().slice(-5);
+    const fullPhone = countryCode.startsWith("+")
+      ? countryCode + phone
+      : "+" + countryCode + phone;
 
     const user = await User.create({
       name,
       email,
       phone,
+      countryCode,
+      fullPhone,
       password,
       role: role || "customer",
       otp,
@@ -69,13 +73,22 @@ const verifyOTP = async (req, res) => {
 // @route POST /api/auth/login
 const login = async (req, res) => {
   try {
-    const { email, phone, password } = req.body;
+    const { email, phone, countryCode, password } = req.body;
 
     if (!password || (!email && !phone)) {
       return errorResponse(res, 422, "Please provide email/phone and password");
     }
 
-    const query = email ? { email } : { phone };
+    // Match by email OR phone (with or without country code)
+    let query;
+    if (email) {
+      query = { email };
+    } else if (countryCode) {
+      const fullPhone = countryCode.startsWith("+") ? countryCode + phone : "+" + countryCode + phone;
+      query = { $or: [{ phone }, { fullPhone }] };
+    } else {
+      query = { phone };
+    }
     const user = await User.findOne(query).select("+password");
     if (!user) return errorResponse(res, 401, "Invalid credentials");
 
