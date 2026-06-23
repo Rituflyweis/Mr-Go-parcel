@@ -96,8 +96,6 @@ const bookRide = async (req, res) => {
       scheduledAt,
       emergencyContact,
       promoCode,
-      distance = 10,
-      duration = 20,
     } = req.body;
 
     if (!rideType || !pickupLocation || !dropLocation) {
@@ -105,6 +103,9 @@ const bookRide = async (req, res) => {
     }
 
     // Auto-calculate distance from coordinates
+    let distance = req.body.distance || 10;
+    let duration = req.body.duration || 20;
+
     if (pickupLocation.lat && pickupLocation.lng && dropLocation.lat && dropLocation.lng) {
       const mapResult = await getDistanceAndDuration(
         pickupLocation.lat, pickupLocation.lng,
