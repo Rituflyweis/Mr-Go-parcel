@@ -2,6 +2,12 @@ const express = require("express");
 const router = express.Router();
 const {
   getDashboard,
+  getDashboardStats,
+  getRevenueTrend,
+  getHourlyOrders,
+  getTopDrivers,
+  getRecentActivity,
+  getRegionalPerformance,
   getAllUsers,
   blockUser,
   getAllDrivers,
@@ -22,7 +28,14 @@ const { protect, authorize } = require("../middleware/auth");
 
 const adminOnly = [protect, authorize("admin")];
 
+// Dashboard — full + section-wise
 router.get("/dashboard", ...adminOnly, getDashboard);
+router.get("/dashboard/stats", ...adminOnly, getDashboardStats);
+router.get("/dashboard/revenue-trend", ...adminOnly, getRevenueTrend);
+router.get("/dashboard/hourly-orders", ...adminOnly, getHourlyOrders);
+router.get("/dashboard/top-drivers", ...adminOnly, getTopDrivers);
+router.get("/dashboard/recent-activity", ...adminOnly, getRecentActivity);
+router.get("/dashboard/regional-performance", ...adminOnly, getRegionalPerformance);
 router.get("/revenue", ...adminOnly, getRevenueReport);
 
 router.get("/users", ...adminOnly, getAllUsers);
