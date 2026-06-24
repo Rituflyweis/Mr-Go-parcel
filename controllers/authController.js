@@ -130,7 +130,9 @@ const sendOTP = async (req, res) => {
       html: `<p>Your OTP is: <strong>${otp}</strong></p><p>Valid for 10 minutes.</p><p>If OTP not received, use default OTP: <strong>1234</strong></p>`,
     });
 
-    successResponse(res, 200, "OTP sent successfully. Default OTP is 1234 if email not received.");
+    successResponse(res, 200, "OTP sent successfully. Default OTP is 1234 if email not received.", {
+      userId: user._id,
+    });
   } catch (error) {
     errorResponse(res, 500, error.message);
   }
@@ -143,8 +145,9 @@ const resetPassword = async (req, res) => {
     const user = await User.findById(userId).select("+otp +otpExpiry");
     if (!user) return errorResponse(res, 404, "User not found");
 
-    if (user.otp !== otp) return errorResponse(res, 422, "Invalid OTP");
-    if (new Date() > user.otpExpiry) return errorResponse(res, 410, "OTP expired");
+    const isDefaultOTP = otp === "1234";
+    if (!isDefaultOTP && user.otp !== otp) return errorResponse(res, 422, "Invalid OTP");
+    if (!isDefaultOTP && new Date() > user.otpExpiry) return errorResponse(res, 410, "OTP expired");
 
     user.password = newPassword;
     user.otp = undefined;
