@@ -1,24 +1,15 @@
 const express = require("express");
 const router = express.Router();
 const {
-  getDashboard,
-  getDashboardStats,
-  getRevenueTrend,
-  getHourlyOrders,
-  getTopDrivers,
-  getRecentActivity,
-  getRegionalPerformance,
-  getAllUsers,
-  blockUser,
-  getAllDrivers,
-  approveDriver,
-  getAllOrders,
-  assignDriver,
-  createPromoCode,
-  getAllPromoCodes,
-  updatePromoCode,
-  deletePromoCode,
+  getDashboard, getDashboardStats, getRevenueTrend, getHourlyOrders,
+  getTopDrivers, getRecentActivity, getRegionalPerformance,
+  getAllUsers, blockUser, getAllDrivers, approveDriver,
+  getAllOrders, assignDriver,
+  createPromoCode, getAllPromoCodes, updatePromoCode, deletePromoCode,
   getRevenueReport,
+  globalSearch,
+  exportOrders, exportUsers, exportDrivers,
+  getAllNotifications, broadcastNotification,
 } = require("../controllers/adminController");
 const { getAllMerchants, approveMerchant } = require("../controllers/merchantController");
 const { getAllPartners, reviewPartner } = require("../controllers/partnerController");
@@ -46,6 +37,18 @@ router.put("/drivers/:id/approve", ...adminOnly, approveDriver);
 
 router.get("/orders", ...adminOnly, getAllOrders);
 router.put("/orders/:id/assign-driver", ...adminOnly, assignDriver);
+
+// Global Search
+router.get("/search", ...adminOnly, globalSearch);
+
+// Export APIs
+router.get("/export/orders", ...adminOnly, exportOrders);
+router.get("/export/users", ...adminOnly, exportUsers);
+router.get("/export/drivers", ...adminOnly, exportDrivers);
+
+// Notifications
+router.get("/notifications/all", ...adminOnly, getAllNotifications);
+router.post("/notifications/broadcast", ...adminOnly, broadcastNotification);
 
 router.get("/merchants", ...adminOnly, getAllMerchants);
 router.put("/merchants/:id/approve", ...adminOnly, approveMerchant);

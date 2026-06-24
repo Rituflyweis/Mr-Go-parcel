@@ -189,13 +189,13 @@ const getDashboard = async (req, res) => {
       .limit(5)
       .select("user totalEarnings totalDeliveries rating vehicleType");
 
-    // ── Recent orders ─────────────────────────────────────────────────
+    // ── Recent orders (fix: driver key included) ──────────────────────
     const recentOrders = await Parcel.find()
-      .populate("customer", "name phone")
-      .populate({ path: "driver", populate: { path: "user", select: "name" } })
+      .populate("customer", "name phone profileImage")
+      .populate({ path: "driver", select: "vehicleType vehicleNumber rating", populate: { path: "user", select: "name phone profileImage" } })
       .sort({ createdAt: -1 })
       .limit(10)
-      .select("trackingId parcelType status pricing customer driver createdAt");
+      .select("trackingId parcelType status pricing customer driver createdAt distance");
 
     // ── Recent rides ─────────────────────────────────────────────────
     const recentRides = await Ride.find()
@@ -423,16 +423,42 @@ const getRecentActivity = async (req, res) => {
 // @route GET /api/admin/dashboard/regional-performance
 const getRegionalPerformance = async (req, res) => {
   try {
-    const regional = await Parcel.aggregate([
-      { $match: { "pickupAddress.city": { $exists: true, $ne: "" } } },
-      { $group: {
-          _id: "$pickupAddress.city",
-          orders: { $sum: 1 },
-          revenue: { $sum: "$pricing.total" },
-      }},
-      { $sort: { revenue: -1 } },
-      { $limit: 10 },
+    const now = new Date();
+    const weekStart = new Date(now); weekStart.setDate(now.getDate() - 7);
+    const prevWeekStart = new Date(now); prevWeekStart.setDate(now.getDate() - 14);
+
+    const [current, previous] = await Promise.all([
+      Parcel.aggregate([
+        { $match: { "pickupAddress.city": { $exists: true, $ne: "" }, createdAt: { $gte: weekStart } } },
+        { $group: { _id: "$pickupAddress.city", orders: { $sum: 1 }, revenue: { $sum: "$pricing.total" } } },
+        { $sort: { revenue: -1 } },
+        { $limit: 10 },
+      ]),
+      Parcel.aggregate([
+        { $match: { "pickupAddress.city": { $exists: true, $ne: "" }, createdAt: { $gte: prevWeekStart, $lt: weekStart } } },
+        { $group: { _id: "$pickupAddress.city", orders: { $sum: 1 }, revenue: { $sum: "$pricing.total" } } },
+      ]),
     ]);
+
+    const prevMap = {};
+    previous.forEach(p => { prevMap[p._id] = p; });
+
+    const regional = current.map(c => {
+      const prev = prevMap[c._id];
+      const prevRevenue = prev?.revenue || 0;
+      const growthPercent = prevRevenue > 0
+        ? parseFloat((((c.revenue - prevRevenue) / prevRevenue) * 100).toFixed(1))
+        : c.revenue > 0 ? 100 : 0;
+
+      return {
+        city: c._id,
+        orders: c.orders,
+        revenue: parseFloat(c.revenue.toFixed(2)),
+        previousRevenue: parseFloat(prevRevenue.toFixed(2)),
+        growthPercent,                      // +12.5 or -3.2
+        trend: growthPercent >= 0 ? "up" : "down",
+      };
+    });
 
     successResponse(res, 200, "Regional performance", { regional });
   } catch (error) {
@@ -599,6 +625,199 @@ const getRevenueReport = async (req, res) => {
   }
 };
 
+// @route GET /api/admin/search?q=john
+const globalSearch = async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 2) return errorResponse(res, 422, "Search query must be at least 2 characters");
+
+    const regex = { $regex: q, $options: "i" };
+
+    const [users, drivers, parcels, rides] = await Promise.all([
+      User.find({ $or: [{ name: regex }, { email: regex }, { phone: regex }] }).limit(5).select("name email phone role profileImage"),
+      Driver.find({ $or: [{ vehicleNumber: regex }] }).populate("user", "name phone").limit(5).select("vehicleType vehicleNumber isApproved rating"),
+      Parcel.find({ $or: [{ trackingId: regex }, { "pickupAddress.city": regex }, { "deliveryAddress.city": regex }] }).limit(5).select("trackingId status parcelType pricing createdAt").populate("customer", "name phone"),
+      Ride.find({ rideId: regex }).limit(5).select("rideId rideType status fare createdAt").populate("customer", "name phone"),
+    ]);
+
+    successResponse(res, 200, "Search results", {
+      query: q,
+      results: { users, drivers, parcels, rides },
+      counts: { users: users.length, drivers: drivers.length, parcels: parcels.length, rides: rides.length },
+    });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/admin/export/orders
+const exportOrders = async (req, res) => {
+  try {
+    const { status, from, to, format = "json" } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to)   filter.createdAt.$lte = new Date(to);
+    }
+
+    const parcels = await Parcel.find(filter)
+      .populate("customer", "name phone email")
+      .populate({ path: "driver", populate: { path: "user", select: "name phone" } })
+      .sort({ createdAt: -1 })
+      .select("trackingId parcelType status pricing customer driver pickupAddress deliveryAddress createdAt distance paymentMethod paymentStatus");
+
+    const data = parcels.map(p => ({
+      trackingId:      p.trackingId,
+      parcelType:      p.parcelType,
+      status:          p.status,
+      total:           p.pricing?.total,
+      paymentMethod:   p.paymentMethod,
+      paymentStatus:   p.paymentStatus,
+      customerName:    p.customer?.name,
+      customerPhone:   p.customer?.phone,
+      driverName:      p.driver?.user?.name || "Not assigned",
+      pickupCity:      p.pickupAddress?.city,
+      deliveryCity:    p.deliveryAddress?.city,
+      distanceKm:      p.distance,
+      createdAt:       p.createdAt,
+    }));
+
+    successResponse(res, 200, "Orders export data", {
+      total: data.length,
+      exportedAt: new Date(),
+      filters: { status, from, to },
+      data,
+    });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/admin/export/users
+const exportUsers = async (req, res) => {
+  try {
+    const { role, from, to } = req.query;
+    const filter = {};
+    if (role) filter.role = role;
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to)   filter.createdAt.$lte = new Date(to);
+    }
+
+    const users = await User.find(filter)
+      .sort({ createdAt: -1 })
+      .select("name email phone role isVerified isBlocked wallet countryCode createdAt");
+
+    const data = users.map(u => ({
+      name:        u.name,
+      email:       u.email,
+      phone:       u.phone,
+      countryCode: u.countryCode,
+      role:        u.role,
+      isVerified:  u.isVerified,
+      isBlocked:   u.isBlocked,
+      walletBalance: u.wallet,
+      joinedAt:    u.createdAt,
+    }));
+
+    successResponse(res, 200, "Users export data", {
+      total: data.length,
+      exportedAt: new Date(),
+      filters: { role, from, to },
+      data,
+    });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/admin/export/drivers
+const exportDrivers = async (req, res) => {
+  try {
+    const { isApproved } = req.query;
+    const filter = {};
+    if (isApproved !== undefined) filter.isApproved = isApproved === "true";
+
+    const drivers = await Driver.find(filter)
+      .populate("user", "name email phone countryCode createdAt")
+      .select("vehicleType vehicleNumber vehicleModel licenseNumber isApproved isOnline totalEarnings totalDeliveries rating");
+
+    const data = drivers.map(d => ({
+      name:           d.user?.name,
+      email:          d.user?.email,
+      phone:          d.user?.phone,
+      vehicleType:    d.vehicleType,
+      vehicleNumber:  d.vehicleNumber,
+      vehicleModel:   d.vehicleModel,
+      licenseNumber:  d.licenseNumber,
+      isApproved:     d.isApproved,
+      isOnline:       d.isOnline,
+      totalEarnings:  d.totalEarnings,
+      totalDeliveries: d.totalDeliveries,
+      rating:         d.rating,
+      joinedAt:       d.user?.createdAt,
+    }));
+
+    successResponse(res, 200, "Drivers export data", {
+      total: data.length,
+      exportedAt: new Date(),
+      data,
+    });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/admin/notifications/all
+const getAllNotifications = async (req, res) => {
+  try {
+    const Notification = require("../models/Notification");
+    const { type, isRead, page = 1, limit = 20 } = req.query;
+    const filter = {};
+    if (type)   filter.type = type;
+    if (isRead !== undefined) filter.isRead = isRead === "true";
+
+    const notifications = await Notification.find(filter)
+      .populate("user", "name email phone role")
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const total = await Notification.countDocuments(filter);
+    const unreadCount = await Notification.countDocuments({ isRead: false });
+
+    successResponse(res, 200, "All notifications", { notifications, total, unreadCount, page: Number(page), limit: Number(limit) });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route POST /api/admin/notifications/broadcast
+const broadcastNotification = async (req, res) => {
+  try {
+    const Notification = require("../models/Notification");
+    const { title, message, type = "system", targetRole } = req.body;
+    if (!title || !message) return errorResponse(res, 422, "title and message are required");
+
+    const userFilter = {};
+    if (targetRole) userFilter.role = targetRole;
+    const users = await User.find(userFilter).select("_id");
+
+    const notifications = users.map(u => ({ user: u._id, title, message, type }));
+    await Notification.insertMany(notifications);
+
+    successResponse(res, 201, `Notification sent to ${users.length} users`, {
+      sentTo: users.length,
+      targetRole: targetRole || "all",
+    });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
 module.exports = {
   getDashboard,
   getDashboardStats,
@@ -618,4 +837,10 @@ module.exports = {
   updatePromoCode,
   deletePromoCode,
   getRevenueReport,
+  globalSearch,
+  exportOrders,
+  exportUsers,
+  exportDrivers,
+  getAllNotifications,
+  broadcastNotification,
 };

@@ -10,37 +10,58 @@ const register = async (req, res) => {
     const { name, email, phone, countryCode = "+1", password, role } = req.body;
 
     const existing = await User.findOne({ $or: [{ email }, { phone }] });
-    if (existing) return errorResponse(res, 409, "Email or phone already registered");
+
+    // Already registered AND verified → block
+    if (existing && existing.isVerified) {
+      return errorResponse(res, 409, "Email or phone already registered");
+    }
 
     const otp = generateOTP();
     const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+    const fullPhone = countryCode.startsWith("+") ? countryCode + phone : "+" + countryCode + phone;
 
+    let user;
+
+    // Already registered but NOT verified → resend OTP, don't create duplicate
+    if (existing && !existing.isVerified) {
+      existing.otp = otp;
+      existing.otpExpiry = otpExpiry;
+      existing.name = name;
+      existing.countryCode = countryCode;
+      existing.fullPhone = fullPhone;
+      await existing.save();
+      user = existing;
+
+      sendEmail({
+        to: email,
+        subject: "Go Parcel - Verify Your Account",
+        html: `<h2>Welcome back!</h2><p>Your new OTP is: <strong>${otp}</strong></p><p>Valid for 10 minutes.</p><p>Default OTP: <strong>1234</strong></p>`,
+      });
+
+      return successResponse(res, 200, "OTP resent. Please verify your account.", {
+        userId: user._id,
+        isExisting: true,
+      });
+    }
+
+    // Fresh registration
     const referralCode = name.slice(0, 3).toUpperCase() + Date.now().toString().slice(-5);
-    const fullPhone = countryCode.startsWith("+")
-      ? countryCode + phone
-      : "+" + countryCode + phone;
 
-    const user = await User.create({
-      name,
-      email,
-      phone,
-      countryCode,
-      fullPhone,
-      password,
+    user = await User.create({
+      name, email, phone, countryCode, fullPhone, password,
       role: role || "customer",
-      otp,
-      otpExpiry,
-      referralCode,
+      otp, otpExpiry, referralCode,
     });
 
     sendEmail({
       to: email,
       subject: "Go Parcel - Verify Your Account",
-      html: `<h2>Welcome to Go Parcel!</h2><p>Your OTP is: <strong>${otp}</strong></p><p>Valid for 10 minutes.</p><p>If you don't receive OTP, use default OTP: <strong>1234</strong></p>`,
+      html: `<h2>Welcome to Go Parcel!</h2><p>Your OTP is: <strong>${otp}</strong></p><p>Valid for 10 minutes.</p><p>Default OTP: <strong>1234</strong></p>`,
     });
 
     successResponse(res, 201, "Registration successful. Please verify OTP.", {
       userId: user._id,
+      isExisting: false,
     });
   } catch (error) {
     errorResponse(res, 500, error.message);
@@ -111,11 +132,20 @@ const login = async (req, res) => {
   }
 };
 
-// @route POST /api/auth/send-otp
+// @route POST /api/auth/send-otp  (also used as resend-otp)
 const sendOTP = async (req, res) => {
   try {
-    const { email, phone } = req.body;
-    const query = email ? { email } : { phone };
+    const { email, phone, userId } = req.body;
+
+    if (!email && !phone && !userId) {
+      return errorResponse(res, 422, "Provide email, phone, or userId");
+    }
+
+    let query;
+    if (userId)      query = { _id: userId };
+    else if (email)  query = { email };
+    else             query = { phone };
+
     const user = await User.findOne(query);
     if (!user) return errorResponse(res, 404, "User not found");
 

@@ -1578,6 +1578,168 @@
           }
         }
       ]
+    },
+    {
+      "name": "Admin — Dashboard Extended",
+      "item": [
+        {
+          "name": "Dashboard — Full",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/dashboard", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "dashboard"] },
+            "description": "Returns everything: topCards (4 stat cards with % growth), quickStats (5 boxes), revenueTrend, hourlyOrders, revenueByService, serviceBreakdown, liveTracking, topDrivers, recentOrders (with driver key fixed), recentRides, recentActivity, weeklySummary, customerInsights, alerts"
+          }
+        },
+        {
+          "name": "Dashboard — Stats (Top 4 Cards)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/dashboard/stats", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "dashboard", "stats"] },
+            "description": "Returns: totalRevenue, todayRevenue, revenueGrowth%, totalOrders, activeDrivers, completionRate%"
+          }
+        },
+        {
+          "name": "Dashboard — Revenue Trend (7 Days)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/dashboard/revenue-trend?period=7days", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "dashboard", "revenue-trend"], "query": [{ "key": "period", "value": "7days", "description": "7days | 30days | 90days" }] },
+            "description": "Returns daily revenue + order count for chart"
+          }
+        },
+        {
+          "name": "Dashboard — Hourly Orders (Live)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/dashboard/hourly-orders", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "dashboard", "hourly-orders"] },
+            "description": "Returns 24-hour order count for bar chart. hour 0-23, label '00:00'-'23:00'"
+          }
+        },
+        {
+          "name": "Dashboard — Top Drivers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/dashboard/top-drivers?limit=5", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "dashboard", "top-drivers"], "query": [{ "key": "limit", "value": "5" }] }
+          }
+        },
+        {
+          "name": "Dashboard — Recent Activity",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/dashboard/recent-activity", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "dashboard", "recent-activity"] }
+          }
+        },
+        {
+          "name": "Dashboard — Regional Performance (with growth %)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/dashboard/regional-performance", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "dashboard", "regional-performance"] },
+            "description": "Returns city, orders, revenue, previousRevenue, growthPercent (+12.5 or -3.2), trend (up/down)\nFixed: upside/downside % now included"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Search & Export",
+      "item": [
+        {
+          "name": "Global Search",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/search?q=john", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "search"], "query": [{ "key": "q", "value": "john", "description": "Search across users, drivers, parcels, rides — min 2 chars" }] },
+            "description": "Searches: users (name/email/phone), drivers (vehicleNumber), parcels (trackingId/city), rides (rideId)\nReturns: results.users[], results.drivers[], results.parcels[], results.rides[], counts{}"
+          }
+        },
+        {
+          "name": "Export Orders",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/export/orders?status=delivered&from=2026-01-01&to=2026-12-31",
+              "host": ["{{BASE_URL}}"], "path": ["api", "admin", "export", "orders"],
+              "query": [
+                { "key": "status", "value": "delivered", "disabled": true, "description": "pending | delivered | cancelled | in_transit" },
+                { "key": "from",   "value": "2026-01-01", "disabled": true },
+                { "key": "to",     "value": "2026-12-31", "disabled": true }
+              ]
+            },
+            "description": "Returns flat data array — trackingId, status, total, customer, driver, cities, createdAt"
+          }
+        },
+        {
+          "name": "Export Users",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/export/users?role=customer",
+              "host": ["{{BASE_URL}}"], "path": ["api", "admin", "export", "users"],
+              "query": [
+                { "key": "role", "value": "customer", "disabled": true, "description": "customer | driver | admin" },
+                { "key": "from", "value": "2026-01-01", "disabled": true },
+                { "key": "to",   "value": "2026-12-31", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Export Drivers",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/export/drivers?isApproved=true",
+              "host": ["{{BASE_URL}}"], "path": ["api", "admin", "export", "drivers"],
+              "query": [{ "key": "isApproved", "value": "true", "description": "true | false" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin — Notifications",
+      "item": [
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/notifications/all?page=1&limit=20",
+              "host": ["{{BASE_URL}}"], "path": ["api", "admin", "notifications", "all"],
+              "query": [
+                { "key": "type",    "value": "",      "disabled": true, "description": "order | payment | driver | promo | system" },
+                { "key": "isRead",  "value": "false", "disabled": true },
+                { "key": "page",    "value": "1" },
+                { "key": "limit",   "value": "20" }
+              ]
+            },
+            "description": "Returns all notifications with user details + unreadCount"
+          }
+        },
+        {
+          "name": "Broadcast Notification",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }, { "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{BASE_URL}}/api/admin/notifications/broadcast", "host": ["{{BASE_URL}}"], "path": ["api", "admin", "notifications", "broadcast"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Special Offer!\",\n  \"message\": \"Get 20% off on your next parcel. Use code SAVE20\",\n  \"type\": \"promo\",\n  \"targetRole\": \"customer\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "description": "Sends notification to all users of a role\ntargetRole: customer | driver | admin (omit for all users)\ntype: order | payment | driver | promo | system"
+          }
+        }
+      ]
     }
   ]
 }
