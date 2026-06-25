@@ -189,13 +189,29 @@ const getDashboard = async (req, res) => {
       .limit(5)
       .select("user totalEarnings totalDeliveries rating vehicleType");
 
-    // ── Recent orders (fix: driver key included) ──────────────────────
+    // ── Recent orders ──────────────────────────────────────────────────
     const recentOrders = await Parcel.find()
       .populate("customer", "name phone profileImage")
-      .populate({ path: "driver", select: "vehicleType vehicleNumber rating", populate: { path: "user", select: "name phone profileImage" } })
+      .populate({ path: "driver", select: "vehicleType vehicleNumber rating user", populate: { path: "user", select: "name phone profileImage" } })
       .sort({ createdAt: -1 })
       .limit(10)
-      .select("trackingId parcelType status pricing customer driver createdAt distance");
+      .lean()
+      .then(docs => docs.map(p => ({
+        _id: p._id,
+        trackingId: p.trackingId,
+        parcelType: p.parcelType,
+        status: p.status,
+        pricing: p.pricing,
+        distance: p.distance,
+        createdAt: p.createdAt,
+        customer: p.customer,
+        driverName: p.driver?.user?.name || "Not Assigned",
+        driverPhone: p.driver?.user?.phone || null,
+        driverProfileImage: p.driver?.user?.profileImage || null,
+        vehicleType: p.driver?.vehicleType || null,
+        vehicleNumber: p.driver?.vehicleNumber || null,
+        driverRating: p.driver?.rating || null,
+      })));
 
     // ── Recent rides ─────────────────────────────────────────────────
     const recentRides = await Ride.find()
