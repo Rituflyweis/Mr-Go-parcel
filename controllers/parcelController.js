@@ -65,11 +65,15 @@ const getPriceEstimate = async (req, res) => {
 const createParcel = async (req, res) => {
   try {
     const {
-      parcelType, weight, dimensions, description,
-      pickupAddress, deliveryAddress,
+      parcelType, weight, description,
       vehicleType, paymentMethod, scheduledPickupTime,
       isInsured, insuranceAmount, promoCode,
     } = req.body;
+
+    const parseIfString = (value) => (typeof value === "string" ? JSON.parse(value) : value);
+    const dimensions = parseIfString(req.body.dimensions);
+    const pickupAddress = parseIfString(req.body.pickupAddress);
+    const deliveryAddress = parseIfString(req.body.deliveryAddress);
 
     // Auto-calculate distance from coordinates if provided
     const { pickupLat, pickupLng, dropLat, dropLng } = req.body;
