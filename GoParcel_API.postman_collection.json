@@ -529,7 +529,7 @@
                 }
               }
             },
-            "description": "vehicleType: bike | auto | mini_truck | tempo | truck\nPass pickupLat/pickupLng/dropLat/dropLng → backend auto calculates distance via Google Maps\nReturns pricing for all vehicle types + distanceKm + durationMin\nisMock: true means Google Maps key not set yet"
+            "description": "vehicleType: bike | auto | mini_truck | tempo | truck\nPass pickupLat/pickupLng/dropLat/dropLng \u2192 backend auto calculates distance via Google Maps\nReturns pricing for all vehicle types + distanceKm + durationMin\nisMock: true means Google Maps key not set yet"
           }
         },
         {
@@ -1024,7 +1024,7 @@
                 }
               }
             },
-            "description": "Valid transitions:\ndriver_assigned → picked_up\npicked_up → in_transit\nin_transit → out_for_delivery\nout_for_delivery → delivered | failed"
+            "description": "Valid transitions:\ndriver_assigned \u2192 picked_up\npicked_up \u2192 in_transit\nin_transit \u2192 out_for_delivery\nout_for_delivery \u2192 delivered | failed"
           }
         },
         {
@@ -1982,11 +1982,11 @@
                 }
               }
             },
-            "description": "rideType: on_demand | carpool | herdrive | night_safe | airport_transfer\nvehicleCategory: bike | auto | sedan | suv | premium\nPass pickupLat/pickupLng/dropLat/dropLng → Google Maps auto calculates distance + duration\nReturns fare for ALL vehicle categories in allOptions[]\nisMock: true means Google Maps key not set (uses approximate calculation)"
+            "description": "rideType: on_demand | carpool | herdrive | night_safe | airport_transfer\nvehicleCategory: bike | auto | sedan | suv | premium\nPass pickupLat/pickupLng/dropLat/dropLng \u2192 Google Maps auto calculates distance + duration\nReturns fare for ALL vehicle categories in allOptions[]\nisMock: true means Google Maps key not set (uses approximate calculation)"
           }
         },
         {
-          "name": "Book Ride — On Demand",
+          "name": "Book Ride \u2014 On Demand",
           "event": [
             {
               "listen": "test",
@@ -2032,7 +2032,7 @@
           }
         },
         {
-          "name": "Book Ride — HerDrive",
+          "name": "Book Ride \u2014 HerDrive",
           "request": {
             "method": "POST",
             "header": [
@@ -2068,7 +2068,7 @@
           }
         },
         {
-          "name": "Book Ride — Airport Transfer",
+          "name": "Book Ride \u2014 Airport Transfer",
           "request": {
             "method": "POST",
             "header": [
@@ -2104,7 +2104,7 @@
           }
         },
         {
-          "name": "Book Ride — Carpool",
+          "name": "Book Ride \u2014 Carpool",
           "request": {
             "method": "POST",
             "header": [
@@ -2140,7 +2140,7 @@
           }
         },
         {
-          "name": "Book Ride — Night Safe",
+          "name": "Book Ride \u2014 Night Safe",
           "request": {
             "method": "POST",
             "header": [
@@ -2433,7 +2433,404 @@
                 }
               }
             },
-            "description": "Valid transitions:\ndriver_assigned → driver_arriving\ndriver_arriving → ride_started\nride_started → completed"
+            "description": "Valid transitions:\ndriver_assigned \u2192 driver_arriving\ndriver_arriving \u2192 ride_started\nride_started \u2192 completed"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Specialized Services (Customer)",
+      "item": [
+        {
+          "name": "Book Nemt",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/nemt/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "nemt",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledDate\": \"2026-07-05T08:00:00.000Z\",\n  \"timeSlot\": \"08:00 AM - 10:00 AM\",\n  \"patientName\": \"John Doe\",\n  \"vehicleType\": \"wheelchair_van\",\n  \"medicalNotes\": \"Requires wheelchair assistance\",\n  \"appointmentLocation\": \"City Hospital, Boston\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Book Notary",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/notary/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "notary",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledDate\": \"2026-07-05T10:00:00.000Z\",\n  \"timeSlot\": \"10:00 AM - 11:00 AM\",\n  \"clientName\": \"Jane Smith\",\n  \"serviceSubType\": \"Real Estate Closing\",\n  \"documentType\": \"Property Deed\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Book Movers",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/movers/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "movers",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledDate\": \"2026-07-05T08:00:00.000Z\",\n  \"timeSlot\": \"08:00 AM - 12:00 PM\",\n  \"moveSize\": \"2 Bedroom\",\n  \"pickupAddress\": \"123 Old St, Boston\",\n  \"deliveryAddress\": \"456 New Ave, Boston\",\n  \"crewSize\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Book Shuttle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/shuttle/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "shuttle",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledDate\": \"2026-07-05T09:00:00.000Z\",\n  \"timeSlot\": \"09:00 AM - 10:00 AM\",\n  \"route\": \"Downtown Loop\",\n  \"passengers\": 2,\n  \"pickupPoint\": \"Main St Station\",\n  \"dropPoint\": \"Airport Terminal 1\",\n  \"recurrence\": \"one_time\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Book Event Transport",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/event_transport/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "event_transport",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledDate\": \"2026-07-05T09:00:00.000Z\",\n  \"timeSlot\": \"09:00 AM - 11:00 PM\",\n  \"eventName\": \"Tech Conference 2026\",\n  \"pickupPoint\": \"Hotel Lobby\",\n  \"dropPoint\": \"Convention Center\",\n  \"passengers\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Book Campus Shuttle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/campus_shuttle/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "campus_shuttle",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledDate\": \"2026-07-05T08:00:00.000Z\",\n  \"timeSlot\": \"08:00 AM - 09:00 AM\",\n  \"organization\": \"Boston University\",\n  \"pickupPoint\": \"Dorm A\",\n  \"dropPoint\": \"Main Campus\",\n  \"recurrence\": \"daily\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Book Laundry",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/laundry/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "laundry",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledDate\": \"2026-07-05T14:00:00.000Z\",\n  \"timeSlot\": \"02:00 PM - 04:00 PM\",\n  \"itemDetails\": \"2 bags of clothes, dry cleaning\",\n  \"pickupAddress\": \"123 Main St, Boston\",\n  \"deliveryAddress\": \"123 Main St, Boston\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Book Tow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/tow/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "tow",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduledDate\": \"2026-07-05T15:00:00.000Z\",\n  \"timeSlot\": \"ASAP\",\n  \"vehicleInfo\": \"Honda Civic 2019, Blue\",\n  \"breakdownLocation\": \"I-90 Exit 12, Boston\",\n  \"deliveryAddress\": \"Joe's Auto Repair, Boston\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "My Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/my-bookings?serviceType=&status=&page=1&limit=10",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "my-bookings"
+              ],
+              "query": [
+                {
+                  "key": "serviceType",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get My Booking By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/my-bookings/{{BOOKING_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "my-bookings",
+                "{{BOOKING_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel My Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/my-bookings/{{BOOKING_ID}}/cancel",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "my-bookings",
+                "{{BOOKING_ID}}",
+                "cancel"
+              ]
+            }
           }
         }
       ]
@@ -2475,11 +2872,11 @@
                 }
               }
             },
-            "description": "Mumbai: BKC → Andheri West (~7.2km)\nBackend auto-calculates distance via Google Maps\nReturns pricing for all vehicle types + distanceKm + durationMin"
+            "description": "Mumbai: BKC \u2192 Andheri West (~7.2km)\nBackend auto-calculates distance via Google Maps\nReturns pricing for all vehicle types + distanceKm + durationMin"
           }
         },
         {
-          "name": "Parcel Price Estimate — Delhi Route",
+          "name": "Parcel Price Estimate \u2014 Delhi Route",
           "request": {
             "method": "POST",
             "header": [
@@ -2512,11 +2909,11 @@
                 }
               }
             },
-            "description": "Delhi: Lajpat Nagar → Connaught Place (~8km)"
+            "description": "Delhi: Lajpat Nagar \u2192 Connaught Place (~8km)"
           }
         },
         {
-          "name": "Parcel Price Estimate — Bengaluru Route",
+          "name": "Parcel Price Estimate \u2014 Bengaluru Route",
           "request": {
             "method": "POST",
             "header": [
@@ -2549,11 +2946,11 @@
                 }
               }
             },
-            "description": "Bengaluru: MG Road → Indiranagar (~3.5km)"
+            "description": "Bengaluru: MG Road \u2192 Indiranagar (~3.5km)"
           }
         },
         {
-          "name": "Ride Fare Estimate — Mumbai (All Vehicles)",
+          "name": "Ride Fare Estimate \u2014 Mumbai (All Vehicles)",
           "request": {
             "method": "POST",
             "header": [
@@ -2586,11 +2983,11 @@
                 }
               }
             },
-            "description": "Mumbai: BKC → Airport\nReturns fare for ALL vehicle categories: bike, auto, sedan, suv, premium\nWith auto-calculated distance from Google Maps"
+            "description": "Mumbai: BKC \u2192 Airport\nReturns fare for ALL vehicle categories: bike, auto, sedan, suv, premium\nWith auto-calculated distance from Google Maps"
           }
         },
         {
-          "name": "Ride Fare Estimate — HerDrive Delhi",
+          "name": "Ride Fare Estimate \u2014 HerDrive Delhi",
           "request": {
             "method": "POST",
             "header": [
@@ -2623,11 +3020,11 @@
                 }
               }
             },
-            "description": "Delhi: Lajpat Nagar → Connaught Place\nHerDrive has 10% surcharge"
+            "description": "Delhi: Lajpat Nagar \u2192 Connaught Place\nHerDrive has 10% surcharge"
           }
         },
         {
-          "name": "Ride Fare Estimate — Airport Transfer",
+          "name": "Ride Fare Estimate \u2014 Airport Transfer",
           "request": {
             "method": "POST",
             "header": [
@@ -2660,7 +3057,7 @@
                 }
               }
             },
-            "description": "Bengaluru: MG Road → Kempegowda Airport (~35km)\nAirport Transfer has 30% surcharge"
+            "description": "Bengaluru: MG Road \u2192 Kempegowda Airport (~35km)\nAirport Transfer has 30% surcharge"
           }
         },
         {
@@ -3850,7 +4247,7 @@
       ]
     },
     {
-      "name": "Admin — Extended",
+      "name": "Admin \u2014 Extended",
       "item": [
         {
           "name": "Get All Merchants",
@@ -4171,10 +4568,10 @@
       ]
     },
     {
-      "name": "Admin — Dashboard Extended",
+      "name": "Admin \u2014 Dashboard Extended",
       "item": [
         {
-          "name": "Dashboard — Full",
+          "name": "Dashboard \u2014 Full",
           "request": {
             "method": "GET",
             "header": [
@@ -4198,7 +4595,7 @@
           }
         },
         {
-          "name": "Dashboard — Stats (Top 4 Cards)",
+          "name": "Dashboard \u2014 Stats (Top 4 Cards)",
           "request": {
             "method": "GET",
             "header": [
@@ -4223,7 +4620,7 @@
           }
         },
         {
-          "name": "Dashboard — Revenue Trend (7 Days)",
+          "name": "Dashboard \u2014 Revenue Trend (7 Days)",
           "request": {
             "method": "GET",
             "header": [
@@ -4255,7 +4652,7 @@
           }
         },
         {
-          "name": "Dashboard — Hourly Orders (Live)",
+          "name": "Dashboard \u2014 Hourly Orders (Live)",
           "request": {
             "method": "GET",
             "header": [
@@ -4280,7 +4677,7 @@
           }
         },
         {
-          "name": "Dashboard — Top Drivers",
+          "name": "Dashboard \u2014 Top Drivers",
           "request": {
             "method": "GET",
             "header": [
@@ -4310,7 +4707,7 @@
           }
         },
         {
-          "name": "Dashboard — Recent Activity",
+          "name": "Dashboard \u2014 Recent Activity",
           "request": {
             "method": "GET",
             "header": [
@@ -4334,7 +4731,7 @@
           }
         },
         {
-          "name": "Dashboard — Regional Performance (with growth %)",
+          "name": "Dashboard \u2014 Regional Performance (with growth %)",
           "request": {
             "method": "GET",
             "header": [
@@ -4361,7 +4758,7 @@
       ]
     },
     {
-      "name": "Admin — Search & Export",
+      "name": "Admin \u2014 Search & Export",
       "item": [
         {
           "name": "Global Search",
@@ -4387,7 +4784,7 @@
                 {
                   "key": "q",
                   "value": "john",
-                  "description": "Search across users, drivers, parcels, rides — min 2 chars"
+                  "description": "Search across users, drivers, parcels, rides \u2014 min 2 chars"
                 }
               ]
             },
@@ -4434,7 +4831,7 @@
                 }
               ]
             },
-            "description": "Returns flat data array — trackingId, status, total, customer, driver, cities, createdAt"
+            "description": "Returns flat data array \u2014 trackingId, status, total, customer, driver, cities, createdAt"
           }
         },
         {
@@ -4513,7 +4910,7 @@
       ]
     },
     {
-      "name": "Admin — Notifications",
+      "name": "Admin \u2014 Notifications",
       "item": [
         {
           "name": "Get All Notifications",
@@ -4602,7 +4999,7 @@
       ]
     },
     {
-      "name": "Admin — Send a Parcel",
+      "name": "Admin \u2014 Send a Parcel",
       "item": [
         {
           "name": "Parcel Stats",
@@ -4800,7 +5197,7 @@
                   "key": "trackingId",
                   "value": "",
                   "disabled": true,
-                  "description": "Optional — search specific parcel by trackingId"
+                  "description": "Optional \u2014 search specific parcel by trackingId"
                 }
               ]
             },
@@ -4810,7 +5207,7 @@
       ]
     },
     {
-      "name": "Admin — Book a Ride",
+      "name": "Admin \u2014 Book a Ride",
       "item": [
         {
           "name": "Ride Stats",
@@ -5113,7 +5510,7 @@
       ]
     },
     {
-      "name": "Admin — Specialized Services",
+      "name": "Admin \u2014 Specialized Services",
       "item": [
         {
           "name": "NEMT List",
@@ -5474,7 +5871,7 @@
       ]
     },
     {
-      "name": "Admin — Payments and Finance",
+      "name": "Admin \u2014 Payments and Finance",
       "item": [
         {
           "name": "Transactions",
@@ -5820,7 +6217,7 @@
       ]
     },
     {
-      "name": "Admin — Compliance and Safety",
+      "name": "Admin \u2014 Compliance and Safety",
       "item": [
         {
           "name": "Verifications List",
@@ -6169,7 +6566,7 @@
       ]
     },
     {
-      "name": "Admin — Users and Roles",
+      "name": "Admin \u2014 Users and Roles",
       "item": [
         {
           "name": "Customer Management",
@@ -6297,7 +6694,7 @@
       ]
     },
     {
-      "name": "Admin — Partners and Drivers",
+      "name": "Admin \u2014 Partners and Drivers",
       "item": [
         {
           "name": "Driver Management Stats",
@@ -6377,7 +6774,7 @@
       ]
     },
     {
-      "name": "Admin — Reports and Analytics",
+      "name": "Admin \u2014 Reports and Analytics",
       "item": [
         {
           "name": "Analytics and Reports",
@@ -6414,7 +6811,7 @@
       ]
     },
     {
-      "name": "Admin — System Settings",
+      "name": "Admin \u2014 System Settings",
       "item": [
         {
           "name": "Get Settings",
