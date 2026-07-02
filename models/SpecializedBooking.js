@@ -5,7 +5,7 @@ const specializedBookingSchema = new mongoose.Schema(
     bookingId: { type: String, unique: true },
     serviceType: {
       type: String,
-      enum: ["nemt", "notary", "movers", "shuttle"],
+      enum: ["nemt", "notary", "movers", "shuttle", "event_transport", "campus_shuttle", "laundry", "tow"],
       required: true,
     },
     customer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
@@ -47,13 +47,24 @@ const specializedBookingSchema = new mongoose.Schema(
     pickupPoint: { type: String },
     dropPoint: { type: String },
     recurrence: { type: String, enum: ["one_time", "daily", "weekly", "monthly"], default: "one_time" },
+
+    // Event transport / campus shuttle specific
+    eventName: { type: String },
+    organization: { type: String },
+
+    // Laundry specific
+    itemDetails: { type: String },
+
+    // Tow service specific
+    vehicleInfo: { type: String },
+    breakdownLocation: { type: String },
   },
   { timestamps: true }
 );
 
 specializedBookingSchema.pre("save", function (next) {
   if (!this.bookingId) {
-    const prefix = { nemt: "NEMT", notary: "NOT", movers: "MOV", shuttle: "SHT" }[this.serviceType] || "SVC";
+    const prefix = { nemt: "NEMT", notary: "NOT", movers: "MOV", shuttle: "SHT", event_transport: "EVT", campus_shuttle: "CMP", laundry: "LDY", tow: "TOW" }[this.serviceType] || "SVC";
     this.bookingId = prefix + "-" + Date.now().toString().slice(-4);
   }
   next();

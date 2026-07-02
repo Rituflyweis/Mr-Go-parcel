@@ -186,4 +186,78 @@ const deleteBooking = async (req, res) => {
   }
 };
 
-module.exports = { getNEMT, createNEMT, getNotary, createNotary, getMovers, createMovers, getShuttle, createShuttle, updateBooking, deleteBooking };
+// ── CUSTOMER ──────────────────────────────────────────────────────────────────
+
+const VALID_SERVICE_TYPES = ["nemt", "notary", "movers", "shuttle", "event_transport", "campus_shuttle", "laundry", "tow"];
+
+// @route POST /api/specialized/:serviceType/book
+const createCustomerBooking = async (req, res) => {
+  try {
+    const { serviceType } = req.params;
+    if (!VALID_SERVICE_TYPES.includes(serviceType)) {
+      return errorResponse(res, 400, "Invalid service type");
+    }
+
+    const booking = await SpecializedBooking.create({
+      ...req.body,
+      serviceType,
+      customer: req.user._id,
+    });
+    successResponse(res, 201, "Booking created", { booking });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/my-bookings
+const getMyBookings = async (req, res) => {
+  try {
+    const { serviceType, status, page = 1, limit = 20 } = req.query;
+    const filter = { customer: req.user._id };
+    if (serviceType) filter.serviceType = serviceType;
+    if (status) filter.status = status;
+
+    const bookings = await SpecializedBooking.find(filter)
+      .populate("assignedDriver")
+      .sort({ scheduledDate: -1 })
+      .skip((page - 1) * limit)
+      .limit(Number(limit));
+
+    const total = await SpecializedBooking.countDocuments(filter);
+    successResponse(res, 200, "My bookings", { bookings, total });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/my-bookings/:id
+const getMyBookingById = async (req, res) => {
+  try {
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, customer: req.user._id }).populate("assignedDriver");
+    if (!booking) return errorResponse(res, 404, "Booking not found");
+    successResponse(res, 200, "Booking details", { booking });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route PUT /api/specialized/my-bookings/:id/cancel
+const cancelMyBooking = async (req, res) => {
+  try {
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, customer: req.user._id });
+    if (!booking) return errorResponse(res, 404, "Booking not found");
+    if (["completed", "cancelled"].includes(booking.status)) {
+      return errorResponse(res, 400, `Booking already ${booking.status}`);
+    }
+    booking.status = "cancelled";
+    await booking.save();
+    successResponse(res, 200, "Booking cancelled", { booking });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+module.exports = {
+  getNEMT, createNEMT, getNotary, createNotary, getMovers, createMovers, getShuttle, createShuttle, updateBooking, deleteBooking,
+  createCustomerBooking, getMyBookings, getMyBookingById, cancelMyBooking,
+};
