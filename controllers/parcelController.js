@@ -65,7 +65,7 @@ const getPriceEstimate = async (req, res) => {
 const createParcel = async (req, res) => {
   try {
     const {
-      parcelType, weight, description,
+      parcelType, deliveryType, weight, description,
       vehicleType, paymentMethod, scheduledPickupTime,
       isInsured, insuranceAmount, promoCode,
     } = req.body;
@@ -117,6 +117,7 @@ const createParcel = async (req, res) => {
     const parcel = await Parcel.create({
       customer: req.user._id,
       parcelType,
+      deliveryType: deliveryType || "same_day",
       weight,
       dimensions,
       description,
@@ -164,9 +165,10 @@ const createParcel = async (req, res) => {
 // @route GET /api/parcel/my-orders
 const getMyOrders = async (req, res) => {
   try {
-    const { status, page = 1, limit = 10 } = req.query;
+    const { status, deliveryType, page = 1, limit = 10 } = req.query;
     const filter = { customer: req.user._id };
     if (status) filter.status = status;
+    if (deliveryType) filter.deliveryType = deliveryType;
 
     const parcels = await Parcel.find(filter)
       .populate("driver", "user vehicleType vehicleNumber rating")

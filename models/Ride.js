@@ -70,6 +70,7 @@ const rideSchema = new mongoose.Schema(
 
     rating: { type: Number, min: 1, max: 5 },
     review: { type: String },
+    tip: { type: Number, default: 0 },
 
     cancelReason: { type: String },
     cancelledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },

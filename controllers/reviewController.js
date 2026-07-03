@@ -53,7 +53,7 @@ const reviewParcel = async (req, res) => {
 // @route POST /api/review/ride/:rideId
 const reviewRide = async (req, res) => {
   try {
-    const { rating, review } = req.body;
+    const { rating, review, tip } = req.body;
     if (!rating || rating < 1 || rating > 5) return errorResponse(res, 422, "Rating must be between 1 and 5");
 
     const ride = await Ride.findById(req.params.rideId);
@@ -64,6 +64,7 @@ const reviewRide = async (req, res) => {
 
     ride.rating = rating;
     ride.review = review;
+    if (tip) ride.tip = tip;
     await ride.save();
 
     // Update driver rating

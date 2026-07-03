@@ -25,6 +25,7 @@ const trainingRoutes = require("./routes/trainingRoutes");
 const womenProgramRoutes = require("./routes/womenProgramRoutes");
 const earningRoutes = require("./routes/earningRoutes");
 const specializedRoutes = require("./routes/specializedRoutes");
+const supportRoutes = require("./routes/supportRoutes");
 
 const app = express();
 
@@ -65,6 +66,7 @@ app.use("/api/training", trainingRoutes);
 app.use("/api/women-program", womenProgramRoutes);
 app.use("/api/earnings", earningRoutes);
 app.use("/api/specialized", specializedRoutes);
+app.use("/api/support", supportRoutes);
 
 // 404 handler
 app.use((req, res) => res.status(404).json({ success: false, message: "Route not found" }));

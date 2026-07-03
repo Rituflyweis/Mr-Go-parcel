@@ -522,7 +522,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"vehicleType\": \"bike\",\n  \"weight\": 2,\n  \"pickupLat\": 19.0760,\n  \"pickupLng\": 72.8777,\n  \"dropLat\": 19.1197,\n  \"dropLng\": 72.8296\n}",
+              "raw": "{\n  \"deliveryType\": \"scheduled\",\n  \"vehicleType\": \"bike\",\n  \"weight\": 2,\n  \"pickupLat\": 19.076,\n  \"pickupLng\": 72.8777,\n  \"dropLat\": 19.1197,\n  \"dropLng\": 72.8296\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -573,6 +573,12 @@
                   "key": "parcelType",
                   "value": "document",
                   "type": "text"
+                },
+                {
+                  "key": "deliveryType",
+                  "value": "scheduled",
+                  "type": "text",
+                  "description": "same_day|scheduled|intercity|contactless|grocery|b2b_bulk|document_courier|airport_baggage|hardware_tools|auto_parts"
                 },
                 {
                   "key": "weight",
@@ -671,6 +677,12 @@
                   "value": "",
                   "disabled": true,
                   "description": "pending|driver_assigned|picked_up|in_transit|out_for_delivery|delivered|cancelled|failed"
+                },
+                {
+                  "key": "deliveryType",
+                  "value": "",
+                  "disabled": true,
+                  "description": "same_day|scheduled|intercity|contactless|grocery|b2b_bulk|document_courier|airport_baggage|hardware_tools|auto_parts"
                 },
                 {
                   "key": "page",
@@ -2836,6 +2848,88 @@
       ]
     },
     {
+      "name": "Support",
+      "item": [
+        {
+          "name": "Get FAQs (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/support/faqs?category=general",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "support",
+                "faqs"
+              ],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "general",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Contact Info (Public)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{BASE_URL}}/api/support/contact",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "support",
+                "contact"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Submit Feedback",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/support/feedback",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "support",
+                "feedback"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"The app is great, but I'd love night mode.\",\n  \"category\": \"general\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
       "name": "Maps & Location",
       "item": [
         {
@@ -3231,7 +3325,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"rating\": 5,\n  \"review\": \"Very smooth ride, driver was polite!\"\n}",
+              "raw": "{\n  \"rating\": 5,\n  \"review\": \"Very smooth ride, driver was polite!\",\n  \"tip\": 5\n}",
               "options": {
                 "raw": {
                   "language": "json"

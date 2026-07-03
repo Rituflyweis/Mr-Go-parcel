@@ -40,6 +40,23 @@ const parcelSchema = new mongoose.Schema(
       enum: ["document", "small_package", "medium_package", "large_package", "fragile", "electronics"],
       required: true,
     },
+
+    deliveryType: {
+      type: String,
+      enum: [
+        "same_day",
+        "scheduled",
+        "intercity",
+        "contactless",
+        "grocery",
+        "b2b_bulk",
+        "document_courier",
+        "airport_baggage",
+        "hardware_tools",
+        "auto_parts",
+      ],
+      default: "same_day",
+    },
     weight: { type: Number, required: true }, // in kg
     dimensions: {
       length: Number,
