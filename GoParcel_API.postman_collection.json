@@ -796,6 +796,499 @@
       ]
     },
     {
+      "name": "Ride",
+      "item": [
+        {
+          "name": "Fare Estimate",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/estimate",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "estimate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"vehicleCategory\": \"sedan\",\n  \"rideType\": \"on_demand\",\n  \"pickupLat\": 19.0760,\n  \"pickupLng\": 72.8777,\n  \"dropLat\": 19.1197,\n  \"dropLng\": 72.8296\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "rideType: on_demand | carpool | herdrive | night_safe | airport_transfer\nvehicleCategory: bike | auto | sedan | suv | premium\nPass pickupLat/pickupLng/dropLat/dropLng \u2192 Google Maps auto calculates distance + duration\nReturns fare for ALL vehicle categories in allOptions[]\nisMock: true means Google Maps key not set (uses approximate calculation)"
+          }
+        },
+        {
+          "name": "Book Ride \u2014 On Demand",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) { pm.collectionVariables.set('RIDE_ID', pm.response.json().data.ride._id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rideType\": \"on_demand\",\n  \"pickupLocation\": {\n    \"address\": \"123, Green Park Colony, Mumbai\",\n    \"city\": \"Mumbai\",\n    \"lat\": 19.0760,\n    \"lng\": 72.8777\n  },\n  \"dropLocation\": {\n    \"address\": \"456, Andheri West, Mumbai\",\n    \"city\": \"Mumbai\",\n    \"lat\": 19.1197,\n    \"lng\": 72.8296\n  },\n  \"vehicleCategory\": \"sedan\",\n  \"passengers\": 1,\n  \"paymentMethod\": \"online\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Book Ride \u2014 HerDrive",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rideType\": \"herdrive\",\n  \"pickupLocation\": {\n    \"address\": \"789, Lajpat Nagar, Delhi\",\n    \"city\": \"Delhi\",\n    \"lat\": 28.5672,\n    \"lng\": 77.2399\n  },\n  \"dropLocation\": {\n    \"address\": \"12, Connaught Place, Delhi\",\n    \"city\": \"Delhi\",\n    \"lat\": 28.6315,\n    \"lng\": 77.2195\n  },\n  \"vehicleCategory\": \"sedan\",\n  \"passengers\": 1,\n  \"paymentMethod\": \"wallet\",\n  \"distance\": 8,\n  \"duration\": 20\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Book Ride \u2014 Airport Transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rideType\": \"airport_transfer\",\n  \"pickupLocation\": {\n    \"address\": \"456, BKC Tower, Mumbai\",\n    \"city\": \"Mumbai\",\n    \"lat\": 19.0595,\n    \"lng\": 72.8656\n  },\n  \"dropLocation\": {\n    \"address\": \"Chhatrapati Shivaji International Airport, Mumbai\",\n    \"city\": \"Mumbai\",\n    \"lat\": 19.0896,\n    \"lng\": 72.8656\n  },\n  \"vehicleCategory\": \"suv\",\n  \"passengers\": 2,\n  \"paymentMethod\": \"online\",\n  \"distance\": 18,\n  \"duration\": 40\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Book Ride \u2014 Carpool",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rideType\": \"carpool\",\n  \"pickupLocation\": {\n    \"address\": \"789, Lajpat Nagar, Delhi\",\n    \"city\": \"Delhi\",\n    \"lat\": 28.5672,\n    \"lng\": 77.2399\n  },\n  \"dropLocation\": {\n    \"address\": \"Cyber City, Gurugram\",\n    \"city\": \"Gurugram\",\n    \"lat\": 28.4949,\n    \"lng\": 77.0890\n  },\n  \"vehicleCategory\": \"sedan\",\n  \"passengers\": 3,\n  \"paymentMethod\": \"cash\",\n  \"distance\": 20,\n  \"duration\": 45\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Book Ride \u2014 Night Safe",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/book",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "book"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rideType\": \"night_safe\",\n  \"pickupLocation\": {\n    \"address\": \"55, MG Road, Bengaluru\",\n    \"city\": \"Bengaluru\",\n    \"lat\": 12.9716,\n    \"lng\": 77.5946\n  },\n  \"dropLocation\": {\n    \"address\": \"88, Indiranagar, Bengaluru\",\n    \"city\": \"Bengaluru\",\n    \"lat\": 12.9784,\n    \"lng\": 77.6412\n  },\n  \"vehicleCategory\": \"sedan\",\n  \"passengers\": 1,\n  \"paymentMethod\": \"wallet\",\n  \"emergencyContact\": \"9876543210\",\n  \"distance\": 6,\n  \"duration\": 18\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "My Rides",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/my-rides?page=1&limit=10",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "my-rides"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true,
+                  "description": "searching | driver_assigned | driver_arriving | ride_started | completed | cancelled"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Ride By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/{{RIDE_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "{{RIDE_ID}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Ride",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/{{RIDE_ID}}/cancel",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "{{RIDE_ID}}",
+                "cancel"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Changed my plans\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Rate Ride",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/{{RIDE_ID}}/rate",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "{{RIDE_ID}}",
+                "rate"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rating\": 5,\n  \"review\": \"Excellent ride, very safe and comfortable!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Available Rides (Driver)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{DRIVER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/driver/available-rides",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "driver",
+                "available-rides"
+              ]
+            }
+          }
+        },
+        {
+          "name": "My Rides (Driver)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{DRIVER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/driver/my-rides?page=1&limit=10",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "driver",
+                "my-rides"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Accept Ride (Driver)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{DRIVER_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/{{RIDE_ID}}/accept",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "{{RIDE_ID}}",
+                "accept"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Ride Status (Driver)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{DRIVER_TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/ride/{{RIDE_ID}}/update-status",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "ride",
+                "{{RIDE_ID}}",
+                "update-status"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"driver_arriving\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "Valid transitions:\ndriver_assigned \u2192 driver_arriving\ndriver_arriving \u2192 ride_started\nride_started \u2192 completed"
+          }
+        }
+      ]
+    },
+    {
       "name": "Driver",
       "item": [
         {
@@ -1517,935 +2010,6 @@
                 }
               ]
             }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Admin",
-      "item": [
-        {
-          "name": "Dashboard",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/admin/dashboard",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "dashboard"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Revenue Report",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/admin/revenue?period=month",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "revenue"
-              ],
-              "query": [
-                {
-                  "key": "period",
-                  "value": "month",
-                  "description": "day | week | month"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get All Users",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/admin/users?page=1&limit=10",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "users"
-              ],
-              "query": [
-                {
-                  "key": "role",
-                  "value": "",
-                  "disabled": true,
-                  "description": "customer | driver | admin"
-                },
-                {
-                  "key": "search",
-                  "value": "",
-                  "disabled": true
-                },
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Block / Unblock User",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/admin/users/:id/block",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "users",
-                ":id",
-                "block"
-              ],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "USER_ID_HERE"
-                }
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"isBlocked\": true\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Get All Drivers",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/admin/drivers?page=1&limit=10",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "drivers"
-              ],
-              "query": [
-                {
-                  "key": "isApproved",
-                  "value": "false",
-                  "disabled": true,
-                  "description": "true | false"
-                },
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Approve / Reject Driver",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/admin/drivers/{{DRIVER_ID}}/approve",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "drivers",
-                "{{DRIVER_ID}}",
-                "approve"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"isApproved\": true\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Get All Orders",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/admin/orders?page=1&limit=10",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "orders"
-              ],
-              "query": [
-                {
-                  "key": "status",
-                  "value": "",
-                  "disabled": true
-                },
-                {
-                  "key": "search",
-                  "value": "",
-                  "disabled": true,
-                  "description": "search by trackingId"
-                },
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Assign Driver to Order",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/admin/orders/{{PARCEL_ID}}/assign-driver",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "orders",
-                "{{PARCEL_ID}}",
-                "assign-driver"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"driverId\": \"{{DRIVER_ID}}\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Create Promo Code",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 201) { pm.collectionVariables.set('PROMO_ID', pm.response.json().data.promo._id); }"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/admin/promo",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "promo"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"code\": \"SAVE20\",\n  \"discountType\": \"percentage\",\n  \"discountValue\": 20,\n  \"maxDiscount\": 100,\n  \"minOrderAmount\": 200,\n  \"validFrom\": \"2026-06-01T00:00:00.000Z\",\n  \"validTill\": \"2026-12-31T23:59:59.000Z\",\n  \"isActive\": true\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "discountType: flat | percentage"
-          }
-        },
-        {
-          "name": "Get All Promo Codes",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/admin/promo",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "promo"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Promo Code",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ADMIN_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/admin/promo/{{PROMO_ID}}",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "promo",
-                "{{PROMO_ID}}"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"isActive\": false\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Delete Promo Code",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{ADMIN_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/admin/promo/{{PROMO_ID}}",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "admin",
-                "promo",
-                "{{PROMO_ID}}"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Ride",
-      "item": [
-        {
-          "name": "Fare Estimate",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/estimate",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "estimate"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"vehicleCategory\": \"sedan\",\n  \"rideType\": \"on_demand\",\n  \"pickupLat\": 19.0760,\n  \"pickupLng\": 72.8777,\n  \"dropLat\": 19.1197,\n  \"dropLng\": 72.8296\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "rideType: on_demand | carpool | herdrive | night_safe | airport_transfer\nvehicleCategory: bike | auto | sedan | suv | premium\nPass pickupLat/pickupLng/dropLat/dropLng \u2192 Google Maps auto calculates distance + duration\nReturns fare for ALL vehicle categories in allOptions[]\nisMock: true means Google Maps key not set (uses approximate calculation)"
-          }
-        },
-        {
-          "name": "Book Ride \u2014 On Demand",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "if (pm.response.code === 201) { pm.collectionVariables.set('RIDE_ID', pm.response.json().data.ride._id); }"
-                ]
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/book",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "book"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"rideType\": \"on_demand\",\n  \"pickupLocation\": {\n    \"address\": \"123, Green Park Colony, Mumbai\",\n    \"city\": \"Mumbai\",\n    \"lat\": 19.0760,\n    \"lng\": 72.8777\n  },\n  \"dropLocation\": {\n    \"address\": \"456, Andheri West, Mumbai\",\n    \"city\": \"Mumbai\",\n    \"lat\": 19.1197,\n    \"lng\": 72.8296\n  },\n  \"vehicleCategory\": \"sedan\",\n  \"passengers\": 1,\n  \"paymentMethod\": \"online\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Book Ride \u2014 HerDrive",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/book",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "book"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"rideType\": \"herdrive\",\n  \"pickupLocation\": {\n    \"address\": \"789, Lajpat Nagar, Delhi\",\n    \"city\": \"Delhi\",\n    \"lat\": 28.5672,\n    \"lng\": 77.2399\n  },\n  \"dropLocation\": {\n    \"address\": \"12, Connaught Place, Delhi\",\n    \"city\": \"Delhi\",\n    \"lat\": 28.6315,\n    \"lng\": 77.2195\n  },\n  \"vehicleCategory\": \"sedan\",\n  \"passengers\": 1,\n  \"paymentMethod\": \"wallet\",\n  \"distance\": 8,\n  \"duration\": 20\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Book Ride \u2014 Airport Transfer",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/book",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "book"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"rideType\": \"airport_transfer\",\n  \"pickupLocation\": {\n    \"address\": \"456, BKC Tower, Mumbai\",\n    \"city\": \"Mumbai\",\n    \"lat\": 19.0595,\n    \"lng\": 72.8656\n  },\n  \"dropLocation\": {\n    \"address\": \"Chhatrapati Shivaji International Airport, Mumbai\",\n    \"city\": \"Mumbai\",\n    \"lat\": 19.0896,\n    \"lng\": 72.8656\n  },\n  \"vehicleCategory\": \"suv\",\n  \"passengers\": 2,\n  \"paymentMethod\": \"online\",\n  \"distance\": 18,\n  \"duration\": 40\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Book Ride \u2014 Carpool",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/book",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "book"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"rideType\": \"carpool\",\n  \"pickupLocation\": {\n    \"address\": \"789, Lajpat Nagar, Delhi\",\n    \"city\": \"Delhi\",\n    \"lat\": 28.5672,\n    \"lng\": 77.2399\n  },\n  \"dropLocation\": {\n    \"address\": \"Cyber City, Gurugram\",\n    \"city\": \"Gurugram\",\n    \"lat\": 28.4949,\n    \"lng\": 77.0890\n  },\n  \"vehicleCategory\": \"sedan\",\n  \"passengers\": 3,\n  \"paymentMethod\": \"cash\",\n  \"distance\": 20,\n  \"duration\": 45\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Book Ride \u2014 Night Safe",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/book",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "book"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"rideType\": \"night_safe\",\n  \"pickupLocation\": {\n    \"address\": \"55, MG Road, Bengaluru\",\n    \"city\": \"Bengaluru\",\n    \"lat\": 12.9716,\n    \"lng\": 77.5946\n  },\n  \"dropLocation\": {\n    \"address\": \"88, Indiranagar, Bengaluru\",\n    \"city\": \"Bengaluru\",\n    \"lat\": 12.9784,\n    \"lng\": 77.6412\n  },\n  \"vehicleCategory\": \"sedan\",\n  \"passengers\": 1,\n  \"paymentMethod\": \"wallet\",\n  \"emergencyContact\": \"9876543210\",\n  \"distance\": 6,\n  \"duration\": 18\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "My Rides",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/my-rides?page=1&limit=10",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "my-rides"
-              ],
-              "query": [
-                {
-                  "key": "status",
-                  "value": "",
-                  "disabled": true,
-                  "description": "searching | driver_assigned | driver_arriving | ride_started | completed | cancelled"
-                },
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Ride By ID",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/{{RIDE_ID}}",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "{{RIDE_ID}}"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Cancel Ride",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/{{RIDE_ID}}/cancel",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "{{RIDE_ID}}",
-                "cancel"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"reason\": \"Changed my plans\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Rate Ride",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/{{RIDE_ID}}/rate",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "{{RIDE_ID}}",
-                "rate"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"rating\": 5,\n  \"review\": \"Excellent ride, very safe and comfortable!\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            }
-          }
-        },
-        {
-          "name": "Available Rides (Driver)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{DRIVER_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/driver/available-rides",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "driver",
-                "available-rides"
-              ]
-            }
-          }
-        },
-        {
-          "name": "My Rides (Driver)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{DRIVER_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/driver/my-rides?page=1&limit=10",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "driver",
-                "my-rides"
-              ],
-              "query": [
-                {
-                  "key": "status",
-                  "value": "",
-                  "disabled": true
-                },
-                {
-                  "key": "page",
-                  "value": "1"
-                },
-                {
-                  "key": "limit",
-                  "value": "10"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Accept Ride (Driver)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{DRIVER_TOKEN}}"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/{{RIDE_ID}}/accept",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "{{RIDE_ID}}",
-                "accept"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Ride Status (Driver)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{DRIVER_TOKEN}}"
-              },
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{BASE_URL}}/api/ride/{{RIDE_ID}}/update-status",
-              "host": [
-                "{{BASE_URL}}"
-              ],
-              "path": [
-                "api",
-                "ride",
-                "{{RIDE_ID}}",
-                "update-status"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"driver_arriving\"\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "description": "Valid transitions:\ndriver_assigned \u2192 driver_arriving\ndriver_arriving \u2192 ride_started\nride_started \u2192 completed"
           }
         }
       ]
@@ -4334,6 +3898,442 @@
                 "api",
                 "earnings",
                 "tips"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/dashboard",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "dashboard"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Revenue Report",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/revenue?period=month",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "revenue"
+              ],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "month",
+                  "description": "day | week | month"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/users?page=1&limit=10",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "",
+                  "disabled": true,
+                  "description": "customer | driver | admin"
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Block / Unblock User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/users/:id/block",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "users",
+                ":id",
+                "block"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": "USER_ID_HERE"
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isBlocked\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get All Drivers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/drivers?page=1&limit=10",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "drivers"
+              ],
+              "query": [
+                {
+                  "key": "isApproved",
+                  "value": "false",
+                  "disabled": true,
+                  "description": "true | false"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve / Reject Driver",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/drivers/{{DRIVER_ID}}/approve",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "drivers",
+                "{{DRIVER_ID}}",
+                "approve"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isApproved\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/orders?page=1&limit=10",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "",
+                  "disabled": true
+                },
+                {
+                  "key": "search",
+                  "value": "",
+                  "disabled": true,
+                  "description": "search by trackingId"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Assign Driver to Order",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/orders/{{PARCEL_ID}}/assign-driver",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "orders",
+                "{{PARCEL_ID}}",
+                "assign-driver"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"{{DRIVER_ID}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Create Promo Code",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) { pm.collectionVariables.set('PROMO_ID', pm.response.json().data.promo._id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/promo",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "promo"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SAVE20\",\n  \"discountType\": \"percentage\",\n  \"discountValue\": 20,\n  \"maxDiscount\": 100,\n  \"minOrderAmount\": 200,\n  \"validFrom\": \"2026-06-01T00:00:00.000Z\",\n  \"validTill\": \"2026-12-31T23:59:59.000Z\",\n  \"isActive\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "description": "discountType: flat | percentage"
+          }
+        },
+        {
+          "name": "Get All Promo Codes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/promo",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "promo"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Promo Code",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/promo/{{PROMO_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "promo",
+                "{{PROMO_ID}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isActive\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Promo Code",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{ADMIN_TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/promo/{{PROMO_ID}}",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "promo",
+                "{{PROMO_ID}}"
               ]
             }
           }
