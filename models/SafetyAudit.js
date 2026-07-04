@@ -26,11 +26,10 @@ const safetyAuditSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-safetyAuditSchema.pre("save", function (next) {
+safetyAuditSchema.pre("save", function () {
   if (!this.auditId) {
     this.auditId = "AUD-" + new Date().getFullYear() + "-" + Date.now().toString().slice(-4);
   }
-  next();
 });
 
 module.exports = mongoose.model("SafetyAudit", safetyAuditSchema);

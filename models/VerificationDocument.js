@@ -25,11 +25,10 @@ const verificationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-verificationSchema.pre("save", function (next) {
+verificationSchema.pre("save", function () {
   if (!this.verificationId) {
     this.verificationId = "VER-" + new Date().getFullYear() + "-" + Date.now().toString().slice(-4);
   }
-  next();
 });
 
 module.exports = mongoose.model("VerificationDocument", verificationSchema);

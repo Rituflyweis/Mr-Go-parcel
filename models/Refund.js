@@ -26,11 +26,10 @@ const refundSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-refundSchema.pre("save", function (next) {
+refundSchema.pre("save", function () {
   if (!this.refundId) {
     this.refundId = "REF-" + new Date().getFullYear() + "-" + Date.now().toString().slice(-4);
   }
-  next();
 });
 
 module.exports = mongoose.model("Refund", refundSchema);

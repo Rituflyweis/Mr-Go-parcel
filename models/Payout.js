@@ -28,11 +28,10 @@ const payoutSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-payoutSchema.pre("save", function (next) {
+payoutSchema.pre("save", function () {
   if (!this.payoutId) {
     this.payoutId = "PAY-" + new Date().getFullYear() + "-" + Date.now().toString().slice(-4);
   }
-  next();
 });
 
 module.exports = mongoose.model("Payout", payoutSchema);

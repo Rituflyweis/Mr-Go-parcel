@@ -27,11 +27,10 @@ const pricingRuleSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-pricingRuleSchema.pre("save", function (next) {
+pricingRuleSchema.pre("save", function () {
   if (!this.ruleId) {
     this.ruleId = "PR-" + Date.now().toString().slice(-6);
   }
-  next();
 });
 
 module.exports = mongoose.model("PricingRule", pricingRuleSchema);

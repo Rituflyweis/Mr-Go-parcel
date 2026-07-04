@@ -26,11 +26,10 @@ const incidentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-incidentSchema.pre("save", function (next) {
+incidentSchema.pre("save", function () {
   if (!this.incidentId) {
     this.incidentId = "INC-" + new Date().getFullYear() + "-" + Date.now().toString().slice(-4);
   }
-  next();
 });
 
 module.exports = mongoose.model("Incident", incidentSchema);

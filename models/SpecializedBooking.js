@@ -62,12 +62,11 @@ const specializedBookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-specializedBookingSchema.pre("save", function (next) {
+specializedBookingSchema.pre("save", function () {
   if (!this.bookingId) {
     const prefix = { nemt: "NEMT", notary: "NOT", movers: "MOV", shuttle: "SHT", event_transport: "EVT", campus_shuttle: "CMP", laundry: "LDY", tow: "TOW" }[this.serviceType] || "SVC";
     this.bookingId = prefix + "-" + Date.now().toString().slice(-4);
   }
-  next();
 });
 
 module.exports = mongoose.model("SpecializedBooking", specializedBookingSchema);
