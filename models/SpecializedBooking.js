@@ -10,6 +10,7 @@ const specializedBookingSchema = new mongoose.Schema(
     },
     customer: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     assignedDriver: { type: mongoose.Schema.Types.ObjectId, ref: "Driver" },
+    provider: { type: mongoose.Schema.Types.ObjectId, ref: "SpecializedProvider" }, // notary/mover the customer picked
 
     // Common fields
     status: {
@@ -17,10 +18,23 @@ const specializedBookingSchema = new mongoose.Schema(
       enum: ["scheduled", "in_progress", "completed", "cancelled"],
       default: "scheduled",
     },
+    // Granular sub-status history for flows that track more than one state between
+    // "scheduled" and "completed" (e.g. movers: crew on the way -> arrived -> loading ->
+    // en route -> arrived at destination). The customer app's status screens read this
+    // instead of just the coarse `status` field.
+    statusTimeline: [
+      {
+        status: { type: String }, // "crew_on_the_way", "arrived", "loading", "en_route", "arrived_destination", "completed"
+        note: { type: String },
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
     scheduledDate: { type: Date, required: true },
     timeSlot: { type: String }, // "09:00 AM - 11:00 AM"
     cost: { type: Number, default: 0 },
+    tip: { type: Number, default: 0 },
     notes: { type: String },
+    documents: [{ type: String }], // uploaded document URLs (notary: docs to be notarized; movers: proof photos)
 
     // NEMT specific
     patientName: { type: String },
@@ -33,13 +47,36 @@ const specializedBookingSchema = new mongoose.Schema(
     serviceSubType: { type: String }, // "Real Estate Closing", "Legal Documents"
     notaryName: { type: String },
     documentType: { type: String },
+    locationType: { type: String, enum: ["home", "office", "hospital", "jail", "retirement_home"] },
+    fullAddress: { type: String },
+    numberOfSignatures: { type: Number, default: 1 },
 
     // Movers specific
+    moveType: { type: String }, // "Apartment Move", "House Move", "Office Move", "Furniture Move", "Heavy Item Move"
     moveSize: { type: String }, // "1 Bedroom", "2 Bedroom", "4 Bedroom"
     pickupAddress: { type: String },
     deliveryAddress: { type: String },
+    pickupAccessType: { type: String, enum: ["stairs", "elevator"] },
+    pickupFloor: { type: Number },
+    deliveryAccessType: { type: String, enum: ["stairs", "elevator"] },
+    deliveryFloor: { type: Number },
     crewSize: { type: Number },
     crewName: { type: String },
+    // Room-by-room inventory the customer builds before getting quotes
+    inventory: [
+      {
+        room: { type: String }, // "Living Room", "Bedroom", "Kitchen"
+        item: { type: String }, // "Sofa", "Dresser"
+        quantity: { type: Number, default: 1 },
+        photo: { type: String },
+      },
+    ],
+    damageReport: {
+      reported: { type: Boolean, default: false },
+      description: { type: String },
+      photos: [{ type: String }],
+      reportedAt: { type: Date },
+    },
 
     // Shuttle specific
     route: { type: String },

@@ -1,4 +1,5 @@
 const SpecializedBooking = require("../models/SpecializedBooking");
+const SpecializedProvider = require("../models/SpecializedProvider");
 const { successResponse, errorResponse } = require("../utils/response");
 
 const getStats = async (serviceType, req) => {
@@ -219,6 +220,7 @@ const getMyBookings = async (req, res) => {
 
     const bookings = await SpecializedBooking.find(filter)
       .populate("assignedDriver")
+      .populate("provider")
       .sort({ scheduledDate: -1 })
       .skip((page - 1) * limit)
       .limit(Number(limit));
@@ -233,7 +235,9 @@ const getMyBookings = async (req, res) => {
 // @route GET /api/specialized/my-bookings/:id
 const getMyBookingById = async (req, res) => {
   try {
-    const booking = await SpecializedBooking.findOne({ _id: req.params.id, customer: req.user._id }).populate("assignedDriver");
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, customer: req.user._id })
+      .populate("assignedDriver")
+      .populate("provider");
     if (!booking) return errorResponse(res, 404, "Booking not found");
     successResponse(res, 200, "Booking details", { booking });
   } catch (error) {
@@ -257,7 +261,130 @@ const cancelMyBooking = async (req, res) => {
   }
 };
 
+// @route GET /api/specialized/:serviceType/providers
+// Browse available notaries/movers/etc. for a service type — the "Available notaries"
+// / "Available Movers" list screens in the customer app (name, rating, price, distance,
+// specialties/truck type) have nothing to query against without this.
+const getProviders = async (req, res) => {
+  try {
+    const { serviceType } = req.params;
+    if (!VALID_SERVICE_TYPES.includes(serviceType)) {
+      return errorResponse(res, 400, "Invalid service type");
+    }
+    const { search, specialty, zipCode, minRating, sortBy = "rating" } = req.query;
+
+    const filter = { serviceType, isActive: true, isApproved: true };
+    if (search) filter.name = { $regex: search, $options: "i" };
+    if (specialty) filter.specialties = specialty;
+    if (zipCode) filter.zipCodesServed = zipCode;
+    if (minRating) filter.rating = { $gte: Number(minRating) };
+
+    const sortMap = {
+      rating: { rating: -1 },
+      price: { flatRate: 1, perSignatureFee: 1 },
+      reliability: { reliabilityScore: -1 },
+    };
+
+    const providers = await SpecializedProvider.find(filter).sort(sortMap[sortBy] || sortMap.rating);
+    successResponse(res, 200, "Available providers", { providers });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route PUT /api/specialized/my-bookings/:id/provider
+// Customer picks a provider from the browse list (e.g. tapping "Sarah Martinez" before
+// "Confirm Appointment"). Also snapshots the provider's current price into `cost` so a
+// later price change on the provider's profile doesn't retroactively change a booking
+// the customer already confirmed.
+const selectProvider = async (req, res) => {
+  try {
+    const { providerId } = req.body;
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, customer: req.user._id });
+    if (!booking) return errorResponse(res, 404, "Booking not found");
+
+    const provider = await SpecializedProvider.findOne({ _id: providerId, serviceType: booking.serviceType, isActive: true });
+    if (!provider) return errorResponse(res, 404, "Provider not found or not available for this service");
+
+    booking.provider = provider._id;
+    booking.cost = provider.flatRate || provider.perSignatureFee || booking.cost;
+    await booking.save();
+    successResponse(res, 200, "Provider selected", { booking });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route POST /api/specialized/my-bookings/:id/documents
+// Notary "Upload Documents" step — req.files populated by the `upload` (multer) middleware.
+const uploadBookingDocuments = async (req, res) => {
+  try {
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, customer: req.user._id });
+    if (!booking) return errorResponse(res, 404, "Booking not found");
+    if (!req.files || !req.files.length) return errorResponse(res, 400, "No files uploaded");
+
+    const paths = req.files.map((f) => f.path);
+    booking.documents.push(...paths);
+    await booking.save();
+    successResponse(res, 200, "Documents uploaded", { booking });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route PUT /api/specialized/my-bookings/:id/inventory
+// Movers "Inventory Listing" step — customer builds a room-by-room item list before
+// getting quotes from available movers.
+const submitInventory = async (req, res) => {
+  try {
+    const { inventory } = req.body; // [{ room, item, quantity, photo }]
+    if (!Array.isArray(inventory)) return errorResponse(res, 400, "inventory must be an array");
+
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, customer: req.user._id });
+    if (!booking) return errorResponse(res, 404, "Booking not found");
+
+    booking.inventory = inventory;
+    await booking.save();
+    successResponse(res, 200, "Inventory updated", { booking });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route POST /api/specialized/my-bookings/:id/damage-report
+// Movers "Report Damage or Issue" — customer-facing side of the damage report shown on
+// the delivery-complete screen.
+const reportDamage = async (req, res) => {
+  try {
+    const { description } = req.body;
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, customer: req.user._id });
+    if (!booking) return errorResponse(res, 404, "Booking not found");
+
+    const photos = (req.files || []).map((f) => f.path);
+    booking.damageReport = { reported: true, description, photos, reportedAt: new Date() };
+    await booking.save();
+    successResponse(res, 200, "Damage report submitted", { booking });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/my-bookings/:id/status-timeline
+// Movers "Move in Progress" tracker (crew on the way -> arrived -> loading -> en route ->
+// arrived at destination). Read-only for the customer app; entries get appended by the
+// assigned provider/driver side (not built yet — out of scope for the customer app pass).
+const getStatusTimeline = async (req, res) => {
+  try {
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, customer: req.user._id }).select("statusTimeline status");
+    if (!booking) return errorResponse(res, 404, "Booking not found");
+    successResponse(res, 200, "Status timeline", { status: booking.status, statusTimeline: booking.statusTimeline });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
 module.exports = {
   getNEMT, createNEMT, getNotary, createNotary, getMovers, createMovers, getShuttle, createShuttle, updateBooking, deleteBooking,
   createCustomerBooking, getMyBookings, getMyBookingById, cancelMyBooking,
+  getProviders, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
 };
