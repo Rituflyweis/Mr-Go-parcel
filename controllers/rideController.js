@@ -4,6 +4,8 @@ const User = require("../models/User");
 const { successResponse, errorResponse } = require("../utils/response");
 const { getDistanceAndDuration, getETA } = require("../utils/maps");
 
+const VALID_RIDE_TYPES = Ride.schema.path("rideType").enumValues;
+
 // Fare config per vehicle per km
 const FARE_CONFIG = {
   bike:     { base: 20, perKm: 8,  perMin: 1 },
@@ -45,6 +47,10 @@ const getFareEstimate = async (req, res) => {
       distance: manualDistance,
       duration: manualDuration,
     } = req.body;
+
+    if (!VALID_RIDE_TYPES.includes(rideType)) {
+      return errorResponse(res, 422, `rideType must be one of: ${VALID_RIDE_TYPES.join(", ")}`);
+    }
 
     let distanceKm = manualDistance || 5;
     let durationMin = manualDuration || 20;
