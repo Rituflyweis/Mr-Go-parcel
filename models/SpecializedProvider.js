@@ -38,6 +38,11 @@ const specializedProviderSchema = new mongoose.Schema(
     flatRate: { type: Number },
     hourlyRate: { type: Number },
 
+    // NEMT specific
+    vehicleTier: { type: String, enum: ["standard", "premium", "ambulatory"] },
+    equipment: [{ type: String }], // "Wheelchair Ramp", "Oxygen Support", "First Aid Kit"
+    isOnline: { type: Boolean, default: false },
+
     serviceRadius: { type: Number, default: 25 }, // miles
     zipCodesServed: [{ type: String }],
     availableTimeBlocks: [{ type: String }], // "Morning (8 AM - 12 PM)", etc.

@@ -38,9 +38,19 @@ const specializedBookingSchema = new mongoose.Schema(
 
     // NEMT specific
     patientName: { type: String },
+    patient: { type: mongoose.Schema.Types.ObjectId, ref: "Patient" }, // set when an agency/hospital books on behalf of a registered patient
+    bookedByAgency: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     vehicleType: { type: String, enum: ["wheelchair_van", "ambulatory", "standard_sedan", "stretcher"] },
     medicalNotes: { type: String },
     appointmentLocation: { type: String },
+    mobilityNeeds: { type: String, enum: ["ambulatory", "wheelchair", "stretcher"] },
+    boardingAssistance: { type: Boolean, default: false },
+    appointmentType: { type: String }, // "Dialysis", "Therapy", "Checkup", etc.
+    pickupLocation: { type: String },
+    dropoffLocation: { type: String },
+    isRoundTrip: { type: Boolean, default: false },
+    returnPickupTime: { type: String },
+    insuranceBilling: { type: Boolean, default: false },
 
     // Notary specific
     clientName: { type: String },

@@ -1,5 +1,6 @@
 const SpecializedBooking = require("../models/SpecializedBooking");
 const SpecializedProvider = require("../models/SpecializedProvider");
+const Patient = require("../models/Patient");
 const { successResponse, errorResponse } = require("../utils/response");
 
 const getStats = async (serviceType, req) => {
@@ -383,8 +384,269 @@ const getStatusTimeline = async (req, res) => {
   }
 };
 
+// @route PUT /api/specialized/my-bookings/:id/tip
+// Payment review screen "Add Tip" step, applied after the ride's base fare is already set.
+const addTip = async (req, res) => {
+  try {
+    const { tip } = req.body;
+    if (typeof tip !== "number" || tip < 0) return errorResponse(res, 400, "tip must be a non-negative number");
+
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, customer: req.user._id });
+    if (!booking) return errorResponse(res, 404, "Booking not found");
+
+    booking.tip = tip;
+    await booking.save();
+    successResponse(res, 200, "Tip added", { booking });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// ── PROVIDER (NEMT partner / agency driver) ───────────────────────────────────
+
+const getOwnProvider = async (req) => SpecializedProvider.findOne({ user: req.user._id });
+
+// @route PUT /api/specialized/provider/availability
+// Provider dashboard "Online/Offline" toggle controlling whether they receive new trip requests.
+const toggleProviderAvailability = async (req, res) => {
+  try {
+    const provider = await getOwnProvider(req);
+    if (!provider) return errorResponse(res, 404, "Provider profile not found");
+
+    provider.isOnline = typeof req.body.isOnline === "boolean" ? req.body.isOnline : !provider.isOnline;
+    await provider.save();
+    successResponse(res, 200, "Availability updated", { provider });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/provider/dashboard
+// Provider dashboard: today's earnings/trips, this-week earnings, rating.
+const getProviderDashboard = async (req, res) => {
+  try {
+    const provider = await getOwnProvider(req);
+    if (!provider) return errorResponse(res, 404, "Provider profile not found");
+
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const weekStart = new Date(now); weekStart.setDate(now.getDate() - 6); weekStart.setHours(0, 0, 0, 0);
+
+    const [todayAgg, weekAgg, acceptedTrips] = await Promise.all([
+      SpecializedBooking.aggregate([
+        { $match: { provider: provider._id, status: "completed", updatedAt: { $gte: todayStart } } },
+        { $group: { _id: null, earnings: { $sum: "$cost" }, trips: { $sum: 1 } } },
+      ]),
+      SpecializedBooking.aggregate([
+        { $match: { provider: provider._id, status: "completed", updatedAt: { $gte: weekStart } } },
+        { $group: { _id: null, earnings: { $sum: "$cost" } } },
+      ]),
+      SpecializedBooking.find({ provider: provider._id, status: { $in: ["scheduled", "in_progress"] } })
+        .populate("customer", "name phone")
+        .sort({ scheduledDate: 1 }),
+    ]);
+
+    successResponse(res, 200, "Provider dashboard", {
+      isOnline: provider.isOnline,
+      rating: provider.rating,
+      totalRatings: provider.totalRatings,
+      todayEarnings: todayAgg[0]?.earnings || 0,
+      todayTrips: todayAgg[0]?.trips || 0,
+      weekEarnings: weekAgg[0]?.earnings || 0,
+      acceptedTrips,
+    });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/provider/trips/available
+// "Available Trip Requests" feed — unassigned bookings for this provider's service type.
+const getAvailableTrips = async (req, res) => {
+  try {
+    const provider = await getOwnProvider(req);
+    if (!provider) return errorResponse(res, 404, "Provider profile not found");
+
+    const trips = await SpecializedBooking.find({
+      serviceType: provider.serviceType,
+      provider: null,
+      status: "scheduled",
+    })
+      .populate("customer", "name phone")
+      .sort({ scheduledDate: 1 })
+      .limit(20);
+
+    successResponse(res, 200, "Available trip requests", { trips, count: trips.length });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route PUT /api/specialized/provider/trips/:id/accept
+const acceptTrip = async (req, res) => {
+  try {
+    const provider = await getOwnProvider(req);
+    if (!provider) return errorResponse(res, 404, "Provider profile not found");
+
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, serviceType: provider.serviceType, provider: null });
+    if (!booking) return errorResponse(res, 404, "Trip request not found or already taken");
+
+    booking.provider = provider._id;
+    booking.status = "in_progress";
+    await booking.save();
+    successResponse(res, 200, "Trip accepted", { booking });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route PUT /api/specialized/provider/trips/:id/decline
+// No-op on the booking itself (it just stays unassigned for other providers) — recorded
+// so the same trip isn't re-shown to this provider in future feed refreshes.
+const declineTrip = async (req, res) => {
+  try {
+    const provider = await getOwnProvider(req);
+    if (!provider) return errorResponse(res, 404, "Provider profile not found");
+
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, serviceType: provider.serviceType, provider: null });
+    if (!booking) return errorResponse(res, 404, "Trip request not found or already taken");
+
+    successResponse(res, 200, "Trip declined");
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// ── AGENCY / HOSPITAL PORTAL (books NEMT rides on behalf of registered patients) ──
+
+// @route POST /api/specialized/agency/patients
+const createPatient = async (req, res) => {
+  try {
+    const { name, phone, address, mobilityType } = req.body;
+    if (!name || !phone) return errorResponse(res, 400, "name and phone are required");
+
+    const patient = await Patient.create({ agency: req.user._id, name, phone, address, mobilityType });
+    successResponse(res, 201, "Patient added", { patient });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/agency/patients
+const getPatients = async (req, res) => {
+  try {
+    const patients = await Patient.find({ agency: req.user._id }).sort({ createdAt: -1 });
+
+    const withRideStats = await Promise.all(
+      patients.map(async (p) => {
+        const [totalRides, lastBooking] = await Promise.all([
+          SpecializedBooking.countDocuments({ patient: p._id }),
+          SpecializedBooking.findOne({ patient: p._id }).sort({ scheduledDate: -1 }).select("scheduledDate"),
+        ]);
+        return { ...p.toObject(), totalRides, lastRide: lastBooking?.scheduledDate || null };
+      })
+    );
+
+    successResponse(res, 200, "Patients", { patients: withRideStats, total: patients.length });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route PUT /api/specialized/agency/patients/:id
+const updatePatient = async (req, res) => {
+  try {
+    const patient = await Patient.findOneAndUpdate({ _id: req.params.id, agency: req.user._id }, req.body, { new: true });
+    if (!patient) return errorResponse(res, 404, "Patient not found");
+    successResponse(res, 200, "Patient updated", { patient });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route DELETE /api/specialized/agency/patients/:id
+const deletePatient = async (req, res) => {
+  try {
+    const patient = await Patient.findOneAndDelete({ _id: req.params.id, agency: req.user._id });
+    if (!patient) return errorResponse(res, 404, "Patient not found");
+    successResponse(res, 200, "Patient removed");
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route POST /api/specialized/agency/patients/:id/book-ride
+// "Book New Ride for Patient" — agency books an NEMT trip on the patient's behalf;
+// insuranceBilling defaults true since agency-booked NEMT rides are billed to the
+// patient's insurance rather than paid directly.
+const bookRideForPatient = async (req, res) => {
+  try {
+    const patient = await Patient.findOne({ _id: req.params.id, agency: req.user._id });
+    if (!patient) return errorResponse(res, 404, "Patient not found");
+
+    const {
+      pickupLocation, dropoffLocation, scheduledDate, appointmentType,
+      mobilityNeeds, boardingAssistance, isRoundTrip, returnPickupTime, medicalNotes,
+    } = req.body;
+    if (!pickupLocation || !dropoffLocation || !scheduledDate) {
+      return errorResponse(res, 400, "pickupLocation, dropoffLocation and scheduledDate are required");
+    }
+
+    const booking = await SpecializedBooking.create({
+      serviceType: "nemt",
+      customer: req.user._id,
+      bookedByAgency: req.user._id,
+      patient: patient._id,
+      patientName: patient.name,
+      pickupLocation,
+      dropoffLocation,
+      scheduledDate,
+      appointmentType,
+      mobilityNeeds: mobilityNeeds || patient.mobilityType,
+      boardingAssistance: boardingAssistance || false,
+      isRoundTrip: isRoundTrip || false,
+      returnPickupTime,
+      medicalNotes,
+      insuranceBilling: true,
+    });
+
+    successResponse(res, 201, "Ride booked for patient", { booking });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/agency/dashboard
+const getAgencyDashboard = async (req, res) => {
+  try {
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const todayEnd = new Date(todayStart.getTime() + 86400000);
+
+    const [todayRides, activeNow, completed, totalPatients, pendingBillingAgg] = await Promise.all([
+      SpecializedBooking.countDocuments({ bookedByAgency: req.user._id, scheduledDate: { $gte: todayStart, $lt: todayEnd } }),
+      SpecializedBooking.countDocuments({ bookedByAgency: req.user._id, status: "in_progress" }),
+      SpecializedBooking.countDocuments({ bookedByAgency: req.user._id, status: "completed" }),
+      Patient.countDocuments({ agency: req.user._id }),
+      SpecializedBooking.aggregate([
+        { $match: { bookedByAgency: req.user._id, insuranceBilling: true, status: "completed" } },
+        { $group: { _id: null, total: { $sum: "$cost" } } },
+      ]),
+    ]);
+
+    successResponse(res, 200, "Agency dashboard", {
+      todayRides, activeNow, completed, totalPatients,
+      pendingBilling: pendingBillingAgg[0]?.total || 0,
+    });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
 module.exports = {
   getNEMT, createNEMT, getNotary, createNotary, getMovers, createMovers, getShuttle, createShuttle, updateBooking, deleteBooking,
   createCustomerBooking, getMyBookings, getMyBookingById, cancelMyBooking,
   getProviders, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
+  addTip, toggleProviderAvailability, getProviderDashboard, getAvailableTrips, acceptTrip, declineTrip,
+  createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,
 };
