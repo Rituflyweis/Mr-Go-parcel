@@ -308,7 +308,7 @@ const selectProvider = async (req, res) => {
     if (!provider) return errorResponse(res, 404, "Provider not found or not available for this service");
 
     booking.provider = provider._id;
-    booking.cost = provider.flatRate || provider.perSignatureFee || booking.cost;
+    booking.cost = provider.nemtFare || provider.flatRate || provider.perSignatureFee || booking.cost;
     await booking.save();
     successResponse(res, 200, "Provider selected", { booking });
   } catch (error) {
@@ -765,11 +765,65 @@ const getJourneyStats = async (req, res) => {
   }
 };
 
+// @route GET /api/specialized/nemt/dashboard
+// Individual patient's NEMT home screen ("Welcome back, John" / Need a Ride / Upcoming
+// Rides / Recent Destinations / Your Journey Stats) — bundles what would otherwise be
+// 3 separate calls (my-bookings, my-recent-destinations, my-journey-stats) into one,
+// scoped to just what this screen needs (next few upcoming rides, not the full history).
+const getPatientDashboard = async (req, res) => {
+  try {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [upcomingRidesRaw, destinations, totalRides, thisMonth, ratingAgg] = await Promise.all([
+      SpecializedBooking.find({
+        customer: req.user._id, serviceType: "nemt",
+        status: { $in: ["scheduled", "in_progress"] },
+      })
+        .populate({ path: "assignedDriver", populate: { path: "user", select: "name phone" } })
+        .sort({ scheduledDate: 1 })
+        .limit(5),
+      SpecializedBooking.aggregate([
+        { $match: { customer: req.user._id, serviceType: "nemt", dropoffLocation: { $nin: [null, ""] } } },
+        { $group: { _id: "$dropoffLocation", visits: { $sum: 1 }, lastVisited: { $max: "$scheduledDate" } } },
+        { $sort: { lastVisited: -1 } },
+        { $limit: 5 },
+        { $project: { _id: 0, location: "$_id", visits: 1, lastVisited: 1 } },
+      ]),
+      SpecializedBooking.countDocuments({ customer: req.user._id, serviceType: "nemt" }),
+      SpecializedBooking.countDocuments({ customer: req.user._id, serviceType: "nemt", createdAt: { $gte: monthStart } }),
+      SpecializedBooking.aggregate([
+        { $match: { customer: req.user._id, serviceType: "nemt", rating: { $gt: 0 } } },
+        { $group: { _id: null, avg: { $avg: "$rating" } } },
+      ]),
+    ]);
+
+    const upcomingRides = upcomingRidesRaw.map((b) => ({
+      ...b.toObject(),
+      displayStatus: b.assignedDriver ? "confirmed" : "pending",
+      driverName: b.assignedDriver?.user?.name || "Pending assignment",
+    }));
+
+    successResponse(res, 200, "Patient dashboard", {
+      name: req.user.name,
+      upcomingRides,
+      recentDestinations: destinations,
+      journeyStats: {
+        totalRides,
+        thisMonth,
+        rating: parseFloat((ratingAgg[0]?.avg || 0).toFixed(1)),
+      },
+    });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
 module.exports = {
   getNEMT, createNEMT, getNotary, createNotary, getMovers, createMovers, getShuttle, createShuttle, updateBooking, deleteBooking,
   createCustomerBooking, getMyBookings, getMyBookingById, cancelMyBooking,
   getProviders, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
   addTip, rateBooking, toggleProviderAvailability, getProviderDashboard, getAvailableTrips, acceptTrip, declineTrip,
   createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,
-  getAgencySchedule, getAgencyPerformance, getRecentDestinations, getJourneyStats,
+  getAgencySchedule, getAgencyPerformance, getRecentDestinations, getJourneyStats, getPatientDashboard,
 };

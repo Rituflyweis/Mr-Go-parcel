@@ -42,6 +42,8 @@ const specializedProviderSchema = new mongoose.Schema(
     vehicleTier: { type: String, enum: ["standard", "premium", "ambulatory"] },
     equipment: [{ type: String }], // "Wheelchair Ramp", "Oxygen Support", "First Aid Kit"
     isOnline: { type: Boolean, default: false },
+    nemtFare: { type: Number }, // "Estimated fare" shown on the Select Vehicle screen
+    etaMinutes: { type: Number }, // "12 mins away"
 
     serviceRadius: { type: Number, default: 25 }, // miles
     zipCodesServed: [{ type: String }],

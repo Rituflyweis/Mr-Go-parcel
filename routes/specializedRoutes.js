@@ -7,9 +7,10 @@ const {
   getProviders, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
   addTip, rateBooking, toggleProviderAvailability, getProviderDashboard, getAvailableTrips, acceptTrip, declineTrip,
   createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,
-  getAgencySchedule, getAgencyPerformance, getRecentDestinations, getJourneyStats,
+  getAgencySchedule, getAgencyPerformance, getRecentDestinations, getJourneyStats, getPatientDashboard,
 } = require("../controllers/specializedController");
 
+router.get("/nemt/dashboard", protect, getPatientDashboard);
 router.get("/:serviceType/providers", protect, getProviders);
 router.post("/:serviceType/book", protect, createCustomerBooking);
 router.get("/my-bookings", protect, getMyBookings);

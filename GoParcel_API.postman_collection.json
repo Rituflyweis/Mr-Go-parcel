@@ -2018,6 +2018,30 @@
       "name": "Specialized Services (Customer)",
       "item": [
         {
+          "name": "Get Patient Dashboard (NEMT Home)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/nemt/dashboard",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "nemt",
+                "dashboard"
+              ]
+            }
+          }
+        },
+        {
           "name": "Book Nemt",
           "request": {
             "method": "POST",
