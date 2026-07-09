@@ -11,6 +11,9 @@ const userSchema = new mongoose.Schema(
     fullPhone: { type: String, default: "" },       // countryCode + phone e.g. +919876543210
     password: { type: String, required: true, minlength: 6, select: false },
     role: { type: String, enum: ["customer", "driver", "admin"], default: "customer" },
+    // "Select Account Type" on signup — individual customers vs. an agency/hospital/clinic
+    // booking rides on behalf of patients (see HealthcareFacility for their facility details).
+    accountType: { type: String, enum: ["individual", "hospital", "clinic"], default: "individual" },
     profileImage: { type: String, default: "" },
     isVerified: { type: Boolean, default: false },
     isActive: { type: Boolean, default: true },

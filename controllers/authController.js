@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const Driver = require("../models/Driver");
+const HealthcareFacility = require("../models/HealthcareFacility");
 const { successResponse, errorResponse } = require("../utils/response");
 const generateOTP = require("../utils/generateOTP");
 const sendEmail = require("../utils/sendEmail");
@@ -7,7 +8,16 @@ const sendEmail = require("../utils/sendEmail");
 // @route POST /api/auth/register
 const register = async (req, res) => {
   try {
-    const { name, email, phone, countryCode = "+1", password, role } = req.body;
+    const {
+      name, email, phone, countryCode = "+1", password, role,
+      accountType, facilityName, facilityType, licenseNumber, taxId, contactPerson, facilityAddress,
+    } = req.body;
+
+    if (accountType === "hospital" || accountType === "clinic") {
+      if (!facilityName || !facilityType || !licenseNumber || !taxId || !contactPerson || !facilityAddress) {
+        return errorResponse(res, 400, "facilityName, facilityType, licenseNumber, taxId, contactPerson and facilityAddress are required for hospital/clinic accounts");
+      }
+    }
 
     const existing = await User.findOne({ $or: [{ email }, { phone }] });
 
@@ -50,8 +60,16 @@ const register = async (req, res) => {
     user = await User.create({
       name, email, phone, countryCode, fullPhone, password,
       role: role || "customer",
+      accountType: accountType || "individual",
       otp, otpExpiry, referralCode,
     });
+
+    if (accountType === "hospital" || accountType === "clinic") {
+      await HealthcareFacility.create({
+        user: user._id, facilityName, facilityType, licenseNumber, taxId, contactPerson,
+        address: facilityAddress,
+      });
+    }
 
     sendEmail({
       to: email,

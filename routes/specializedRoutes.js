@@ -9,6 +9,10 @@ const {
   createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,
   getAgencySchedule, getAgencyPerformance, getRecentDestinations, getJourneyStats, getPatientDashboard,
 } = require("../controllers/specializedController");
+const {
+  getAgencyAlerts, getBillingSummary, getInvoices, getClaims, submitClaim, resubmitClaim,
+  getReportsOverview, exportBillingData,
+} = require("../controllers/agencyBillingController");
 
 router.get("/nemt/dashboard", protect, getPatientDashboard);
 router.get("/:serviceType/providers", protect, getProviders);
@@ -44,5 +48,15 @@ router.post("/agency/patients/:id/book-ride", protect, bookRideForPatient);
 router.get("/agency/dashboard", protect, getAgencyDashboard);
 router.get("/agency/schedule", protect, getAgencySchedule);
 router.get("/agency/performance", protect, getAgencyPerformance);
+router.get("/agency/alerts", protect, getAgencyAlerts);
+
+// Agency billing / claims / reports
+router.get("/agency/billing/summary", protect, getBillingSummary);
+router.get("/agency/billing/invoices", protect, getInvoices);
+router.get("/agency/billing/claims", protect, getClaims);
+router.post("/agency/billing/claims", protect, submitClaim);
+router.put("/agency/billing/claims/:id/resubmit", protect, resubmitClaim);
+router.get("/agency/billing/export", protect, exportBillingData);
+router.get("/agency/reports/overview", protect, getReportsOverview);
 
 module.exports = router;

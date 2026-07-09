@@ -551,10 +551,16 @@ const createPatient = async (req, res) => {
   }
 };
 
-// @route GET /api/specialized/agency/patients
+// @route GET /api/specialized/agency/patients?search=&status=active|inactive
 const getPatients = async (req, res) => {
   try {
-    const patients = await Patient.find({ agency: req.user._id }).sort({ createdAt: -1 });
+    const { search, status } = req.query;
+    const filter = { agency: req.user._id };
+    if (status === "active") filter.isActive = true;
+    if (status === "inactive") filter.isActive = false;
+    if (search) filter.name = { $regex: search, $options: "i" };
+
+    const patients = await Patient.find(filter).sort({ createdAt: -1 });
 
     const withRideStats = await Promise.all(
       patients.map(async (p) => {
@@ -605,7 +611,7 @@ const bookRideForPatient = async (req, res) => {
 
     const {
       pickupLocation, dropoffLocation, scheduledDate, appointmentType,
-      mobilityNeeds, boardingAssistance, isRoundTrip, returnPickupTime, medicalNotes,
+      mobilityNeeds, boardingAssistance, isRoundTrip, returnPickupTime, medicalNotes, recurrence,
     } = req.body;
     if (!pickupLocation || !dropoffLocation || !scheduledDate) {
       return errorResponse(res, 400, "pickupLocation, dropoffLocation and scheduledDate are required");
@@ -626,6 +632,7 @@ const bookRideForPatient = async (req, res) => {
       isRoundTrip: isRoundTrip || false,
       returnPickupTime,
       medicalNotes,
+      recurrence: recurrence || "one_time",
       insuranceBilling: true,
     });
 
@@ -668,14 +675,15 @@ const getAgencyDashboard = async (req, res) => {
 const getAgencySchedule = async (req, res) => {
   try {
     const day = req.query.date ? new Date(req.query.date) : new Date();
-    const dayStart = new Date(day.getFullYear(), day.getMonth(), day.getDate());
-    const dayEnd = new Date(dayStart.getTime() + 86400000);
+    const rangeStart = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+    const rangeDays = req.query.view === "week" ? 7 : 1;
+    const rangeEnd = new Date(rangeStart.getTime() + rangeDays * 86400000);
 
     const bookings = await SpecializedBooking.find({
       bookedByAgency: req.user._id,
-      scheduledDate: { $gte: dayStart, $lt: dayEnd },
+      scheduledDate: { $gte: rangeStart, $lt: rangeEnd },
     })
-      .populate("assignedDriver")
+      .populate({ path: "assignedDriver", populate: { path: "user", select: "name phone" } })
       .populate("patient", "name mobilityType")
       .sort({ scheduledDate: 1 });
 
@@ -687,11 +695,13 @@ const getAgencySchedule = async (req, res) => {
       dropoffLocation: b.dropoffLocation,
       scheduledDate: b.scheduledDate,
       status: b.status,
-      driverStatus: b.assignedDriver ? "assigned" : "scheduled",
-      assignedDriver: b.assignedDriver,
+      driverStatus: b.assignedDriver ? "assigned" : "pending",
+      driverName: b.assignedDriver?.user?.name || null,
     }));
 
-    successResponse(res, 200, "Today's schedule", { date: dayStart, schedule, total: schedule.length });
+    successResponse(res, 200, req.query.view === "week" ? "Week schedule" : "Today's schedule", {
+      date: rangeStart, view: req.query.view === "week" ? "week" : "day", schedule, total: schedule.length,
+    });
   } catch (error) {
     errorResponse(res, 500, error.message);
   }
