@@ -28,6 +28,14 @@ io.on("connection", (socket) => {
     console.log(`Tracking parcel ${parcelId}`);
   });
 
+  // Customer joins their own support chat room; admins join the shared inbox room
+  socket.on("join_support_chat", (userId) => {
+    socket.join(`support_${userId}`);
+  });
+  socket.on("join_support_admin", () => {
+    socket.join("support_admin");
+  });
+
   // Driver sends live location
   socket.on("driver_location", ({ parcelId, latitude, longitude }) => {
     io.to(`parcel_${parcelId}`).emit("location_update", { latitude, longitude });

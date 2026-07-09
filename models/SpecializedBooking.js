@@ -33,6 +33,8 @@ const specializedBookingSchema = new mongoose.Schema(
     timeSlot: { type: String }, // "09:00 AM - 11:00 AM"
     cost: { type: Number, default: 0 },
     tip: { type: Number, default: 0 },
+    rating: { type: Number, default: 0, min: 0, max: 5 },
+    review: { type: String },
     notes: { type: String },
     documents: [{ type: String }], // uploaded document URLs (notary: docs to be notarized; movers: proof photos)
 

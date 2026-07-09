@@ -5,8 +5,9 @@ const upload = require("../middleware/upload");
 const {
   createCustomerBooking, getMyBookings, getMyBookingById, cancelMyBooking,
   getProviders, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
-  addTip, toggleProviderAvailability, getProviderDashboard, getAvailableTrips, acceptTrip, declineTrip,
+  addTip, rateBooking, toggleProviderAvailability, getProviderDashboard, getAvailableTrips, acceptTrip, declineTrip,
   createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,
+  getAgencySchedule, getAgencyPerformance, getRecentDestinations, getJourneyStats,
 } = require("../controllers/specializedController");
 
 router.get("/:serviceType/providers", protect, getProviders);
@@ -20,6 +21,11 @@ router.put("/my-bookings/:id/inventory", protect, submitInventory);
 router.post("/my-bookings/:id/damage-report", protect, upload.array("photos", 8), reportDamage);
 router.get("/my-bookings/:id/status-timeline", protect, getStatusTimeline);
 router.put("/my-bookings/:id/tip", protect, addTip);
+router.put("/my-bookings/:id/rate", protect, rateBooking);
+
+// NEMT home screen — recent destinations, journey stats
+router.get("/my-recent-destinations", protect, getRecentDestinations);
+router.get("/my-journey-stats", protect, getJourneyStats);
 
 // Provider (NEMT partner / agency driver) — accept/decline trips, dashboard
 router.put("/provider/availability", protect, toggleProviderAvailability);
@@ -35,5 +41,7 @@ router.put("/agency/patients/:id", protect, updatePatient);
 router.delete("/agency/patients/:id", protect, deletePatient);
 router.post("/agency/patients/:id/book-ride", protect, bookRideForPatient);
 router.get("/agency/dashboard", protect, getAgencyDashboard);
+router.get("/agency/schedule", protect, getAgencySchedule);
+router.get("/agency/performance", protect, getAgencyPerformance);
 
 module.exports = router;

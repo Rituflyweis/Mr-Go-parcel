@@ -402,6 +402,25 @@ const addTip = async (req, res) => {
   }
 };
 
+// @route PUT /api/specialized/my-bookings/:id/rate
+const rateBooking = async (req, res) => {
+  try {
+    const { rating, review } = req.body;
+    if (typeof rating !== "number" || rating < 1 || rating > 5) return errorResponse(res, 400, "rating must be between 1 and 5");
+
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, customer: req.user._id });
+    if (!booking) return errorResponse(res, 404, "Booking not found");
+    if (booking.status !== "completed") return errorResponse(res, 400, "Only completed bookings can be rated");
+
+    booking.rating = rating;
+    booking.review = review;
+    await booking.save();
+    successResponse(res, 200, "Rating submitted", { booking });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
 // ── PROVIDER (NEMT partner / agency driver) ───────────────────────────────────
 
 const getOwnProvider = async (req) => SpecializedProvider.findOne({ user: req.user._id });
@@ -643,10 +662,114 @@ const getAgencyDashboard = async (req, res) => {
   }
 };
 
+// @route GET /api/specialized/agency/schedule?date=YYYY-MM-DD
+// "Today's Schedule" screen — defaults to today; each row shows patient, pickup/drop
+// and whether a driver has been assigned yet ("Assigned" vs "Scheduled").
+const getAgencySchedule = async (req, res) => {
+  try {
+    const day = req.query.date ? new Date(req.query.date) : new Date();
+    const dayStart = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+    const dayEnd = new Date(dayStart.getTime() + 86400000);
+
+    const bookings = await SpecializedBooking.find({
+      bookedByAgency: req.user._id,
+      scheduledDate: { $gte: dayStart, $lt: dayEnd },
+    })
+      .populate("assignedDriver")
+      .populate("patient", "name mobilityType")
+      .sort({ scheduledDate: 1 });
+
+    const schedule = bookings.map((b) => ({
+      _id: b._id,
+      bookingId: b.bookingId,
+      patientName: b.patientName,
+      pickupLocation: b.pickupLocation,
+      dropoffLocation: b.dropoffLocation,
+      scheduledDate: b.scheduledDate,
+      status: b.status,
+      driverStatus: b.assignedDriver ? "assigned" : "scheduled",
+      assignedDriver: b.assignedDriver,
+    }));
+
+    successResponse(res, 200, "Today's schedule", { date: dayStart, schedule, total: schedule.length });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/agency/performance
+// "This Month Performance" card — total rides + avg rating for rides the agency booked.
+const getAgencyPerformance = async (req, res) => {
+  try {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [totalRidesAgg, ratingAgg] = await Promise.all([
+      SpecializedBooking.countDocuments({ bookedByAgency: req.user._id, createdAt: { $gte: monthStart } }),
+      SpecializedBooking.aggregate([
+        { $match: { bookedByAgency: req.user._id, createdAt: { $gte: monthStart }, rating: { $gt: 0 } } },
+        { $group: { _id: null, avg: { $avg: "$rating" } } },
+      ]),
+    ]);
+
+    successResponse(res, 200, "This month's performance", {
+      totalRides: totalRidesAgg,
+      avgRating: parseFloat((ratingAgg[0]?.avg || 0).toFixed(1)),
+    });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/my-recent-destinations
+// NEMT home screen "Recent Destinations" — most-visited dropoff locations, most recent first.
+const getRecentDestinations = async (req, res) => {
+  try {
+    const destinations = await SpecializedBooking.aggregate([
+      { $match: { customer: req.user._id, serviceType: "nemt", dropoffLocation: { $nin: [null, ""] } } },
+      { $group: { _id: "$dropoffLocation", visits: { $sum: 1 }, lastVisited: { $max: "$scheduledDate" } } },
+      { $sort: { lastVisited: -1 } },
+      { $limit: 5 },
+      { $project: { _id: 0, location: "$_id", visits: 1, lastVisited: 1 } },
+    ]);
+
+    successResponse(res, 200, "Recent destinations", { destinations });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/my-journey-stats
+// NEMT home screen "Your Journey Stats" — total rides, avg rating given, rides this month.
+const getJourneyStats = async (req, res) => {
+  try {
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [totalRides, thisMonth, ratingAgg] = await Promise.all([
+      SpecializedBooking.countDocuments({ customer: req.user._id, serviceType: "nemt" }),
+      SpecializedBooking.countDocuments({ customer: req.user._id, serviceType: "nemt", createdAt: { $gte: monthStart } }),
+      SpecializedBooking.aggregate([
+        { $match: { customer: req.user._id, serviceType: "nemt", rating: { $gt: 0 } } },
+        { $group: { _id: null, avg: { $avg: "$rating" } } },
+      ]),
+    ]);
+
+    successResponse(res, 200, "Journey stats", {
+      totalRides,
+      thisMonth,
+      rating: parseFloat((ratingAgg[0]?.avg || 0).toFixed(1)),
+    });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
 module.exports = {
   getNEMT, createNEMT, getNotary, createNotary, getMovers, createMovers, getShuttle, createShuttle, updateBooking, deleteBooking,
   createCustomerBooking, getMyBookings, getMyBookingById, cancelMyBooking,
   getProviders, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
-  addTip, toggleProviderAvailability, getProviderDashboard, getAvailableTrips, acceptTrip, declineTrip,
+  addTip, rateBooking, toggleProviderAvailability, getProviderDashboard, getAvailableTrips, acceptTrip, declineTrip,
   createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,
+  getAgencySchedule, getAgencyPerformance, getRecentDestinations, getJourneyStats,
 };

@@ -8,6 +8,7 @@ const { getNEMT, createNEMT, getNotary, createNotary, getMovers, createMovers, g
 const { getTransactions, getPayouts, createPayout, updatePayout, processBatchPayout, getRefunds, createRefund, updateRefund } = require("../controllers/financeController");
 const { getVerifications, createVerification, updateVerification, getIncidents, createIncident, updateIncident, getAudits, createAudit, updateAudit } = require("../controllers/complianceController");
 const { getSettings, updateSettings, getAdminUsers, createAdminUser, getCustomers, getAnalytics, getDriverManagement, getOnboarding, getPerformanceAnalytics } = require("../controllers/systemController");
+const { getSupportChatThreads, getSupportChatThreadMessages, sendSupportChatMessage } = require("../controllers/supportController");
 
 const adminOnly = [protect, authorize("admin")];
 
@@ -80,5 +81,10 @@ router.get("/system/analytics",  ...adminOnly, getAnalytics);
 // ── SYSTEM SETTINGS ───────────────────────────────────────────────────────────
 router.get("/system/settings",   ...adminOnly, getSettings);
 router.put("/system/settings",   ...adminOnly, updateSettings);
+
+// ── SUPPORT CHAT ──────────────────────────────────────────────────────────────
+router.get("/support/chats",                    ...adminOnly, getSupportChatThreads);
+router.get("/support/chats/:userId/messages",   ...adminOnly, getSupportChatThreadMessages);
+router.post("/support/chats/:userId/send",      ...adminOnly, sendSupportChatMessage);
 
 module.exports = router;
