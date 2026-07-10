@@ -6474,6 +6474,85 @@
             },
             "description": "status: scheduled|in_progress|completed|cancelled"
           }
+        },
+        {
+          "name": "Get Providers (pending/approved)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/specialized/providers?serviceType=movers&status=pending",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "specialized",
+                "providers"
+              ],
+              "query": [
+                {
+                  "key": "serviceType",
+                  "value": "movers"
+                },
+                {
+                  "key": "status",
+                  "value": "pending"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approve/Reject Provider",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/admin/specialized/providers/:id/approve",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "specialized",
+                "providers",
+                ":id",
+                "approve"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isApproved\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
         }
       ]
     },
@@ -8417,6 +8496,116 @@
             "body": {
               "mode": "raw",
               "raw": "{\n  \"message\": \"Sorry for the delay, checking now.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Partner Portal (Provider Self-Service)",
+      "item": [
+        {
+          "name": "Register as Provider (Partner Portal)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/providers/register",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "providers",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceType\": \"movers\",\n  \"name\": \"Swift Movers Pro\",\n  \"phone\": \"5559998888\",\n  \"email\": \"swift@movers.com\",\n  \"truckType\": \"Box Truck (20 ft)\",\n  \"crewSize\": 3,\n  \"flatRate\": 850,\n  \"hourlyRate\": 120,\n  \"serviceRadius\": 30,\n  \"zipCodesServed\": [\n    \"10001\",\n    \"10002\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Get My Provider Profiles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/providers/me",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "providers",
+                "me"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update My Provider Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/providers/me/:id",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "providers",
+                "me",
+                ":id"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"flatRate\": 900\n}",
               "options": {
                 "raw": {
                   "language": "json"

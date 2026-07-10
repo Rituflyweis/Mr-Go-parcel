@@ -8,6 +8,7 @@ const {
   addTip, rateBooking, toggleProviderAvailability, getProviderDashboard, getAvailableTrips, acceptTrip, declineTrip,
   createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,
   getAgencySchedule, getAgencyPerformance, getRecentDestinations, getJourneyStats, getPatientDashboard,
+  registerAsProvider, getMyProviderProfiles, updateMyProviderProfile,
 } = require("../controllers/specializedController");
 const {
   getAgencyAlerts, getBillingSummary, getInvoices, getClaims, submitClaim, resubmitClaim,
@@ -15,6 +16,12 @@ const {
 } = require("../controllers/agencyBillingController");
 
 router.get("/nemt/dashboard", protect, getPatientDashboard);
+
+// Partner Portal — "Join as a professional mover/notary/etc." self-registration
+router.post("/providers/register", protect, registerAsProvider);
+router.get("/providers/me", protect, getMyProviderProfiles);
+router.put("/providers/me/:id", protect, updateMyProviderProfile);
+
 router.get("/:serviceType/providers", protect, getProviders);
 router.post("/:serviceType/book", protect, createCustomerBooking);
 router.get("/my-bookings", protect, getMyBookings);

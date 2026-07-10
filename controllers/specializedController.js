@@ -425,6 +425,101 @@ const rateBooking = async (req, res) => {
 
 const getOwnProvider = async (req) => SpecializedProvider.findOne({ user: req.user._id });
 
+// @route POST /api/specialized/providers/register
+// Partner Portal "Join as a professional mover/notary/etc." signup — creates the
+// SpecializedProvider profile that getProviders/selectProvider query against. Starts
+// unapproved; an admin has to flip isApproved before the profile shows up for customers.
+const registerAsProvider = async (req, res) => {
+  try {
+    const { serviceType, name, phone, email } = req.body;
+    if (!serviceType || !VALID_SERVICE_TYPES.includes(serviceType)) {
+      return errorResponse(res, 400, "A valid serviceType is required");
+    }
+    if (!name) return errorResponse(res, 400, "name is required");
+
+    const existing = await SpecializedProvider.findOne({ user: req.user._id, serviceType });
+    if (existing) return errorResponse(res, 409, "Already registered as a provider for this service type");
+
+    const {
+      specialties, notaryCommissionNumber, notaryCommissionState, notaryCommissionExpiry,
+      perSignatureFee, travelFee, afterHoursFee,
+      truckType, crewSize, flatRate, hourlyRate,
+      vehicleTier, equipment, nemtFare, etaMinutes,
+      serviceRadius, zipCodesServed, availableTimeBlocks,
+    } = req.body;
+
+    const provider = await SpecializedProvider.create({
+      serviceType, user: req.user._id, name, phone, email,
+      specialties, notaryCommissionNumber, notaryCommissionState, notaryCommissionExpiry,
+      perSignatureFee, travelFee, afterHoursFee,
+      truckType, crewSize, flatRate, hourlyRate,
+      vehicleTier, equipment, nemtFare, etaMinutes,
+      serviceRadius, zipCodesServed, availableTimeBlocks,
+    });
+
+    successResponse(res, 201, "Provider application submitted. Awaiting admin approval.", { provider });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/providers/me
+const getMyProviderProfiles = async (req, res) => {
+  try {
+    const providers = await SpecializedProvider.find({ user: req.user._id });
+    successResponse(res, 200, "Your provider profiles", { providers });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route PUT /api/specialized/providers/me/:id
+const updateMyProviderProfile = async (req, res) => {
+  try {
+    const provider = await SpecializedProvider.findOneAndUpdate(
+      { _id: req.params.id, user: req.user._id },
+      req.body,
+      { new: true }
+    );
+    if (!provider) return errorResponse(res, 404, "Provider profile not found");
+    successResponse(res, 200, "Provider profile updated", { provider });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/admin/specialized/providers?serviceType=&status=pending
+const getProvidersAdmin = async (req, res) => {
+  try {
+    const { serviceType, status } = req.query;
+    const filter = {};
+    if (serviceType) filter.serviceType = serviceType;
+    if (status === "pending") filter.isApproved = false;
+    if (status === "approved") filter.isApproved = true;
+
+    const providers = await SpecializedProvider.find(filter).populate("user", "name email phone").sort({ createdAt: -1 });
+    successResponse(res, 200, "Providers", { providers, total: providers.length });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route PUT /api/admin/specialized/providers/:id/approve
+const approveProviderAdmin = async (req, res) => {
+  try {
+    const { isApproved, verificationStatus } = req.body;
+    const provider = await SpecializedProvider.findByIdAndUpdate(
+      req.params.id,
+      { isApproved: isApproved !== undefined ? isApproved : true, verificationStatus: verificationStatus || "verified" },
+      { new: true }
+    );
+    if (!provider) return errorResponse(res, 404, "Provider not found");
+    successResponse(res, 200, `Provider ${provider.isApproved ? "approved" : "rejected"}`, { provider });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
 // @route PUT /api/specialized/provider/availability
 // Provider dashboard "Online/Offline" toggle controlling whether they receive new trip requests.
 const toggleProviderAvailability = async (req, res) => {
@@ -836,4 +931,5 @@ module.exports = {
   addTip, rateBooking, toggleProviderAvailability, getProviderDashboard, getAvailableTrips, acceptTrip, declineTrip,
   createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,
   getAgencySchedule, getAgencyPerformance, getRecentDestinations, getJourneyStats, getPatientDashboard,
+  registerAsProvider, getMyProviderProfiles, updateMyProviderProfile, getProvidersAdmin, approveProviderAdmin,
 };

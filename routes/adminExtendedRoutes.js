@@ -4,7 +4,7 @@ const { protect, authorize } = require("../middleware/auth");
 
 const { getParcelStats, getAllParcels, getActiveParcels, getScheduledParcels, getFailedParcels, getLiveTrackingStats } = require("../controllers/parcelAdminController");
 const { getRideStats, getAllRides, getActiveTrips, getRideHistory, getPricingRules, createPricingRule, updatePricingRule, deletePricingRule, togglePricingRule, calculateFare } = require("../controllers/rideAdminController");
-const { getNEMT, createNEMT, getNotary, createNotary, getMovers, createMovers, getShuttle, createShuttle, updateBooking, deleteBooking } = require("../controllers/specializedController");
+const { getNEMT, createNEMT, getNotary, createNotary, getMovers, createMovers, getShuttle, createShuttle, updateBooking, deleteBooking, getProvidersAdmin, approveProviderAdmin } = require("../controllers/specializedController");
 const { getTransactions, getPayouts, createPayout, updatePayout, processBatchPayout, getRefunds, createRefund, updateRefund } = require("../controllers/financeController");
 const { getVerifications, createVerification, updateVerification, getIncidents, createIncident, updateIncident, getAudits, createAudit, updateAudit } = require("../controllers/complianceController");
 const { getSettings, updateSettings, getAdminUsers, createAdminUser, getCustomers, getAnalytics, getDriverManagement, getOnboarding, getPerformanceAnalytics } = require("../controllers/systemController");
@@ -43,6 +43,8 @@ router.get("/specialized/shuttle", ...adminOnly, getShuttle);
 router.post("/specialized/shuttle",...adminOnly, createShuttle);
 router.put("/specialized/:id",     ...adminOnly, updateBooking);
 router.delete("/specialized/:id",  ...adminOnly, deleteBooking);
+router.get("/specialized/providers",           ...adminOnly, getProvidersAdmin);
+router.put("/specialized/providers/:id/approve", ...adminOnly, approveProviderAdmin);
 
 // ── PAYMENTS & FINANCE ────────────────────────────────────────────────────────
 router.get("/finance/transactions",       ...adminOnly, getTransactions);
