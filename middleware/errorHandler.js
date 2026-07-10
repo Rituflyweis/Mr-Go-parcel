@@ -4,6 +4,12 @@ const errorHandler = (err, req, res, next) => {
   let statusCode = err.statusCode || 500;
   let message = err.message || "Internal Server Error";
 
+  // Multer errors (bad file type from our fileFilter, wrong field name, size limit
+  // exceeded, etc.) are the client's fault, not the server's — surface them as 400s.
+  if (err.name === "MulterError" || err.message === "Only images and PDFs are allowed") {
+    statusCode = 400;
+  }
+
   if (err.name === "CastError") {
     statusCode = 400;
     message = "Invalid ID format";
