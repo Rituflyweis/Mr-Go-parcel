@@ -3959,7 +3959,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"partnerType\": \"agency\",\n  \"companyName\": \"Swift Logistics\",\n  \"contactPerson\": \"Ramesh Kumar\",\n  \"contactPhone\": \"9812345678\",\n  \"contactEmail\": \"ramesh@swiftlogistics.com\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\",\n  \"serviceAreas\": [\"Mumbai\", \"Pune\", \"Nashik\"],\n  \"expectedMonthlyOrders\": 500,\n  \"hasOwnVehicles\": true,\n  \"vehicleCount\": 10,\n  \"experience\": \"5 years in delivery\"\n}",
+              "raw": "{\n  \"partnerType\": \"agency\",\n  \"companyName\": \"Swift Logistics\",\n  \"contactPerson\": \"Ramesh Kumar\",\n  \"contactPhone\": \"9812345678\",\n  \"contactEmail\": \"ramesh@swiftlogistics.com\",\n  \"city\": \"Mumbai\",\n  \"state\": \"Maharashtra\",\n  \"serviceAreas\": [\"Mumbai\", \"Pune\", \"Nashik\"],\n  \"expectedMonthlyOrders\": 500,\n  \"hasOwnVehicles\": true,\n  \"vehicleCount\": 10,\n  \"experience\": \"5 years in delivery\",\n  \"teamSize\": \"crew_based\",\n  \"operatingHours\": \"Mon-Fri 8AM-6PM, Sat 9AM-5PM\",\n  \"serviceCategories\": [\"apartment_move\", \"home_move\", \"commercial_move\"],\n  \"vehicleTypes\": [\"cargo_van\", \"box_truck\"],\n  \"pricingModel\": \"flat_rate\",\n  \"addOnPricing\": {\n    \"packingServices\": 50,\n    \"disassemblyReassembly\": 30,\n    \"heavyStairsFee\": 20,\n    \"extraMoverPerPerson\": 25,\n    \"stairFeePerFloor\": 10\n  },\n  \"availableDays\": [\"mon\", \"tue\", \"wed\", \"thu\", \"fri\", \"sat\"],\n  \"sameDayAvailability\": true\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -4047,6 +4047,67 @@
                 "api",
                 "partner",
                 "dashboard"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Upload Partner Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/partner/documents",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "partner",
+                "documents"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "documentType",
+                  "value": "driver_license",
+                  "type": "text",
+                  "description": "driver_license | vehicle_registration | vehicle_insurance | business_license"
+                },
+                {
+                  "key": "document",
+                  "type": "file"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Partner Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/partner/documents",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "partner",
+                "documents"
               ]
             }
           }
