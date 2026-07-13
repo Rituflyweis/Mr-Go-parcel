@@ -114,17 +114,26 @@ const uploadPartnerDocument = async (req, res) => {
     }
     if (!req.file) return errorResponse(res, 400, "No file uploaded");
 
+    // findOneAndUpdate skips the model's pre("save") hook, so verificationId
+    // must be generated here on insert — otherwise every new doc writes
+    // verificationId: null and collides with the field's unique index.
     const doc = await VerificationDocument.findOneAndUpdate(
       { subject: req.user._id, subjectType: "partner", documentType },
       {
-        subject: req.user._id,
-        subjectType: "partner",
-        subjectName: partner.companyName || partner.contactPerson,
-        documentType,
-        documentUrl: req.file.path,
-        status: "pending_review",
+        $set: {
+          subjectName: partner.companyName || partner.contactPerson,
+          documentUrl: req.file.path,
+          status: "pending_review",
+        },
+        $unset: { rejectionReason: "" },
+        $setOnInsert: {
+          subject: req.user._id,
+          subjectType: "partner",
+          documentType,
+          verificationId: "VER-" + new Date().getFullYear() + "-" + Date.now().toString().slice(-4),
+        },
       },
-      { new: true, upsert: true, setDefaultsOnInsert: true }
+      { new: true, upsert: true }
     );
 
     successResponse(res, 200, "Document uploaded, pending review", { document: doc });
