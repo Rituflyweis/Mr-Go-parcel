@@ -23,6 +23,15 @@ const specializedProviderSchema = new mongoose.Schema(
     reliabilityScore: { type: Number, default: 100 }, // % — used by movers cards
     completedJobs: { type: Number, default: 0 },
 
+    // Business info (shuttle/charter "Become a Provider" signup)
+    dotMcNumber: { type: String }, // DOT/MC number for transport operators
+    fleetSize: { type: Number },
+    coverageAreas: [{ type: String }], // cities/states served, e.g. "Los Angeles, CA"
+    servicesOffered: [{
+      type: String,
+      enum: ["airport_shuttle", "hotel_shuttle", "event_shuttle", "corporate_shuttle", "city_tour", "museum_attraction_tour", "winery_brewery_tour", "charter"],
+    }],
+
     // Notary specific
     specialties: [{ type: String }], // e.g. "Loan Signing", "Real Estate", "Wills / Affidavits"
     notaryCommissionNumber: { type: String },
@@ -53,6 +62,23 @@ const specializedProviderSchema = new mongoose.Schema(
     luggageCapacityMax: { type: Number }, // "10-24 bags"
     amenities: [{ type: String }], // "AC Seats", "Wifi", "TV Streaming"
     shuttleFare: { type: Number }, // "Starting from $350"
+
+    // Vehicle fleet — "Manage your vehicles and their details" screen. Each vehicle
+    // is individually priced ("Setup Pricing"), unlike the summary fields above which
+    // are just a quick-glance default shown on the customer's "Available Providers" card.
+    vehicles: [{
+      name: { type: String, required: true }, // "Sprinter #1"
+      vehicleType: { type: String, required: true }, // "Sprinter Van", "Mini Bus", "Coach Bus"
+      passengerCapacity: { type: Number },
+      luggageCapacity: { type: Number },
+      amenities: [{ type: String }],
+      pricing: {
+        flatRate: { type: Number },
+        hourlyRate: { type: Number },
+        perMileRate: { type: Number },
+      },
+      status: { type: String, enum: ["active", "inactive", "maintenance"], default: "active" },
+    }],
 
     serviceRadius: { type: Number, default: 25 }, // miles
     zipCodesServed: [{ type: String }],

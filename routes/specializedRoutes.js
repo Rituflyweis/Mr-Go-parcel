@@ -5,10 +5,12 @@ const upload = require("../middleware/upload");
 const {
   createCustomerBooking, getMyBookings, getMyBookingById, cancelMyBooking,
   getProviders, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
-  addTip, rateBooking, toggleProviderAvailability, getProviderDashboard, getAvailableTrips, acceptTrip, declineTrip,
+  addTip, rateBooking, toggleProviderAvailability, getProviderDashboard, getAvailableTrips,
+  getProviderTrips, getProviderEarnings, acceptTrip, startTrip, completeTrip, declineTrip,
   createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,
   getAgencySchedule, getAgencyPerformance, getRecentDestinations, getJourneyStats, getPatientDashboard,
   registerAsProvider, getMyProviderProfiles, updateMyProviderProfile,
+  uploadProviderDocument, getProviderDocuments, addVehicle, updateVehicle, deleteVehicle,
 } = require("../controllers/specializedController");
 const {
   getAgencyAlerts, getBillingSummary, getInvoices, getClaims, submitClaim, resubmitClaim,
@@ -17,10 +19,15 @@ const {
 
 router.get("/nemt/dashboard", protect, getPatientDashboard);
 
-// Partner Portal — "Join as a professional mover/notary/etc." self-registration
+// Partner Portal — "Join as a professional mover/notary/shuttle operator/etc." self-registration
 router.post("/providers/register", protect, registerAsProvider);
 router.get("/providers/me", protect, getMyProviderProfiles);
 router.put("/providers/me/:id", protect, updateMyProviderProfile);
+router.post("/providers/me/documents", protect, upload.single("document"), uploadProviderDocument);
+router.get("/providers/me/documents", protect, getProviderDocuments);
+router.post("/providers/me/:id/vehicles", protect, addVehicle);
+router.put("/providers/me/:id/vehicles/:vehicleId", protect, updateVehicle);
+router.delete("/providers/me/:id/vehicles/:vehicleId", protect, deleteVehicle);
 
 router.get("/:serviceType/providers", protect, getProviders);
 router.post("/:serviceType/book", protect, createCustomerBooking);
@@ -39,11 +46,15 @@ router.put("/my-bookings/:id/rate", protect, rateBooking);
 router.get("/my-recent-destinations", protect, getRecentDestinations);
 router.get("/my-journey-stats", protect, getJourneyStats);
 
-// Provider (NEMT partner / agency driver) — accept/decline trips, dashboard
+// Provider (NEMT partner / agency driver / shuttle operator) — trips, dashboard, earnings
 router.put("/provider/availability", protect, toggleProviderAvailability);
 router.get("/provider/dashboard", protect, getProviderDashboard);
+router.get("/provider/trips", protect, getProviderTrips);
 router.get("/provider/trips/available", protect, getAvailableTrips);
+router.get("/provider/earnings", protect, getProviderEarnings);
 router.put("/provider/trips/:id/accept", protect, acceptTrip);
+router.put("/provider/trips/:id/start", protect, startTrip);
+router.put("/provider/trips/:id/complete", protect, completeTrip);
 router.put("/provider/trips/:id/decline", protect, declineTrip);
 
 // Agency / Hospital portal — manage patients, book rides on their behalf

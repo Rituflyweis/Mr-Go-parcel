@@ -4,11 +4,11 @@ const verificationSchema = new mongoose.Schema(
   {
     verificationId: { type: String, unique: true },
     subject: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    subjectType: { type: String, enum: ["driver", "partner", "vehicle"], required: true },
+    subjectType: { type: String, enum: ["driver", "partner", "vehicle", "specialized_provider"], required: true },
     subjectName: { type: String },
     documentType: {
       type: String,
-      enum: ["driver_license", "vehicle_insurance", "background_check", "business_license", "aadhar", "pan", "vehicle_registration"],
+      enum: ["driver_license", "vehicle_insurance", "background_check", "business_license", "aadhar", "pan", "vehicle_registration", "commercial_license"],
       required: true,
     },
     documentUrl: { type: String },
