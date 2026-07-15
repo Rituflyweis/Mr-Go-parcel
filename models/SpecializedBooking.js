@@ -91,8 +91,13 @@ const specializedBookingSchema = new mongoose.Schema(
     },
 
     // Shuttle specific
+    tripType: {
+      type: String,
+      enum: ["airport_shuttle", "hotel_shuttle", "event_shuttle", "city_tour", "winery_tour", "charter"],
+    },
     route: { type: String },
     passengers: { type: Number, default: 1 },
+    luggageCount: { type: Number },
     pickupPoint: { type: String },
     dropPoint: { type: String },
     recurrence: { type: String, enum: ["one_time", "daily", "weekly", "monthly"], default: "one_time" },

@@ -45,6 +45,15 @@ const specializedProviderSchema = new mongoose.Schema(
     nemtFare: { type: Number }, // "Estimated fare" shown on the Select Vehicle screen
     etaMinutes: { type: Number }, // "12 mins away"
 
+    // Shuttle / charter specific
+    vehicleType: { type: String }, // "Coach Bus", "Mini Bus", "Sprinter Van"
+    passengerCapacityMin: { type: Number },
+    passengerCapacityMax: { type: Number }, // "30-45 passengers"
+    luggageCapacityMin: { type: Number },
+    luggageCapacityMax: { type: Number }, // "10-24 bags"
+    amenities: [{ type: String }], // "AC Seats", "Wifi", "TV Streaming"
+    shuttleFare: { type: Number }, // "Starting from $350"
+
     serviceRadius: { type: Number, default: 25 }, // miles
     zipCodesServed: [{ type: String }],
     availableTimeBlocks: [{ type: String }], // "Morning (8 AM - 12 PM)", etc.

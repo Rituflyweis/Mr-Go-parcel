@@ -272,17 +272,18 @@ const getProviders = async (req, res) => {
     if (!VALID_SERVICE_TYPES.includes(serviceType)) {
       return errorResponse(res, 400, "Invalid service type");
     }
-    const { search, specialty, zipCode, minRating, sortBy = "rating" } = req.query;
+    const { search, specialty, zipCode, minRating, passengers, sortBy = "rating" } = req.query;
 
     const filter = { serviceType, isActive: true, isApproved: true };
     if (search) filter.name = { $regex: search, $options: "i" };
     if (specialty) filter.specialties = specialty;
     if (zipCode) filter.zipCodesServed = zipCode;
     if (minRating) filter.rating = { $gte: Number(minRating) };
+    if (passengers) filter.passengerCapacityMax = { $gte: Number(passengers) };
 
     const sortMap = {
       rating: { rating: -1 },
-      price: { flatRate: 1, perSignatureFee: 1 },
+      price: { flatRate: 1, perSignatureFee: 1, shuttleFare: 1 },
       reliability: { reliabilityScore: -1 },
     };
 
@@ -308,7 +309,7 @@ const selectProvider = async (req, res) => {
     if (!provider) return errorResponse(res, 404, "Provider not found or not available for this service");
 
     booking.provider = provider._id;
-    booking.cost = provider.nemtFare || provider.flatRate || provider.perSignatureFee || booking.cost;
+    booking.cost = provider.nemtFare || provider.flatRate || provider.perSignatureFee || provider.shuttleFare || booking.cost;
     await booking.save();
     successResponse(res, 200, "Provider selected", { booking });
   } catch (error) {
@@ -445,6 +446,8 @@ const registerAsProvider = async (req, res) => {
       perSignatureFee, travelFee, afterHoursFee,
       truckType, crewSize, flatRate, hourlyRate,
       vehicleTier, equipment, nemtFare, etaMinutes,
+      vehicleType, passengerCapacityMin, passengerCapacityMax,
+      luggageCapacityMin, luggageCapacityMax, amenities, shuttleFare,
       serviceRadius, zipCodesServed, availableTimeBlocks,
     } = req.body;
 
@@ -454,6 +457,8 @@ const registerAsProvider = async (req, res) => {
       perSignatureFee, travelFee, afterHoursFee,
       truckType, crewSize, flatRate, hourlyRate,
       vehicleTier, equipment, nemtFare, etaMinutes,
+      vehicleType, passengerCapacityMin, passengerCapacityMax,
+      luggageCapacityMin, luggageCapacityMax, amenities, shuttleFare,
       serviceRadius, zipCodesServed, availableTimeBlocks,
     });
 
