@@ -7832,6 +7832,37 @@
           }
         },
         {
+          "name": "My Trips",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/provider/trips?status=scheduled",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "provider",
+                "trips"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "scheduled",
+                  "description": "scheduled (Pending tab) | in_progress (Active tab) | completed"
+                }
+              ]
+            }
+          }
+        },
+        {
           "name": "Accept Trip",
           "request": {
             "method": "PUT",
@@ -7859,6 +7890,94 @@
                   "key": "id",
                   "value": ""
                 }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Start Trip",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/provider/trips/:id/start",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "provider",
+                "trips",
+                ":id",
+                "start"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Complete Trip",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/provider/trips/:id/complete",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "provider",
+                "trips",
+                ":id",
+                "complete"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Provider Earnings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/provider/earnings",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "provider",
+                "earnings"
               ]
             }
           }
@@ -8672,6 +8791,241 @@
                   "language": "json"
                 }
               }
+            }
+          }
+        },
+        {
+          "name": "Register as Shuttle/Tour Bus Provider",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/providers/register",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "providers",
+                "register"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceType\": \"shuttle\",\n  \"name\": \"ABC Transport Inc.\",\n  \"phone\": \"5551234567\",\n  \"email\": \"contact@abctransport.com\",\n  \"dotMcNumber\": \"MC-123456\",\n  \"fleetSize\": 5,\n  \"coverageAreas\": [\"Los Angeles, CA\", \"Downtown LA\", \"Hollywood\"],\n  \"servicesOffered\": [\"airport_shuttle\", \"hotel_shuttle\", \"corporate_shuttle\", \"winery_brewery_tour\"],\n  \"vehicleType\": \"Coach Bus\",\n  \"passengerCapacityMin\": 30,\n  \"passengerCapacityMax\": 45,\n  \"luggageCapacityMin\": 10,\n  \"luggageCapacityMax\": 24,\n  \"amenities\": [\"AC Seats\", \"Wifi\", \"TV Streaming\"],\n  \"shuttleFare\": 350\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              },
+              "description": "servicesOffered: airport_shuttle | hotel_shuttle | event_shuttle | corporate_shuttle | city_tour | museum_attraction_tour | winery_brewery_tour | charter"
+            }
+          }
+        },
+        {
+          "name": "Upload Provider Document",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/providers/me/documents",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "providers",
+                "me",
+                "documents"
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "documentType",
+                  "value": "vehicle_insurance",
+                  "type": "text",
+                  "description": "vehicle_insurance | commercial_license | vehicle_registration | business_license"
+                },
+                {
+                  "key": "document",
+                  "type": "file"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Provider Documents",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/providers/me/documents",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "providers",
+                "me",
+                "documents"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Add Vehicle",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/providers/me/:id/vehicles",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "providers",
+                "me",
+                ":id",
+                "vehicles"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sprinter #1\",\n  \"vehicleType\": \"Sprinter Van\",\n  \"passengerCapacity\": 14,\n  \"luggageCapacity\": 8,\n  \"amenities\": [\"AC\", \"Wifi\"]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Update Vehicle (Setup Pricing)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/providers/me/:id/vehicles/:vehicleId",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "providers",
+                "me",
+                ":id",
+                "vehicles",
+                ":vehicleId"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                },
+                {
+                  "key": "vehicleId",
+                  "value": ""
+                }
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pricing\": {\n    \"flatRate\": 250,\n    \"hourlyRate\": 60,\n    \"perMileRate\": 3\n  },\n  \"status\": \"active\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Delete Vehicle",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{TOKEN}}"
+              }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/providers/me/:id/vehicles/:vehicleId",
+              "host": [
+                "{{BASE_URL}}"
+              ],
+              "path": [
+                "api",
+                "specialized",
+                "providers",
+                "me",
+                ":id",
+                "vehicles",
+                ":vehicleId"
+              ],
+              "variable": [
+                {
+                  "key": "id",
+                  "value": ""
+                },
+                {
+                  "key": "vehicleId",
+                  "value": ""
+                }
+              ]
             }
           }
         }

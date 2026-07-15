@@ -29,6 +29,11 @@ const supportRoutes = require("./routes/supportRoutes");
 
 const app = express();
 
+// Render/Heroku-style platforms sit behind a single reverse proxy hop and set
+// X-Forwarded-For — trust exactly that one hop so req.ip (and express-rate-limit's
+// per-IP counters) reflect the real client instead of erroring or being spoofable.
+app.set("trust proxy", 1);
+
 // Security & logging
 app.use(helmet());
 app.use(morgan("dev"));
