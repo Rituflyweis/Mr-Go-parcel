@@ -302,15 +302,23 @@ const getProviders = async (req, res) => {
 // the customer already confirmed.
 const selectProvider = async (req, res) => {
   try {
-    const { providerId } = req.body;
+    const { providerId, vehicleCount } = req.body;
     const booking = await SpecializedBooking.findOne({ _id: req.params.id, customer: req.user._id });
     if (!booking) return errorResponse(res, 404, "Booking not found");
 
     const provider = await SpecializedProvider.findOne({ _id: providerId, serviceType: booking.serviceType, isActive: true });
     if (!provider) return errorResponse(res, 404, "Provider not found or not available for this service");
 
+    // vehicleCount lets event/group transport book multiple vehicles from one provider
+    // ("Price per Vehicle x Number of Vehicles = Total Amount"); defaults to 1 so this
+    // is a no-op for service types (nemt/notary/movers) that only ever book one unit.
+    const pricePerVehicle = provider.nemtFare || provider.flatRate || provider.perSignatureFee || provider.shuttleFare || booking.cost;
+    const count = vehicleCount || booking.vehicleCount || 1;
+
     booking.provider = provider._id;
-    booking.cost = provider.nemtFare || provider.flatRate || provider.perSignatureFee || provider.shuttleFare || booking.cost;
+    booking.pricePerVehicle = pricePerVehicle;
+    booking.vehicleCount = count;
+    booking.cost = pricePerVehicle * count;
     await booking.save();
     successResponse(res, 200, "Provider selected", { booking });
   } catch (error) {

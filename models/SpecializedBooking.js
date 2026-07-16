@@ -105,6 +105,14 @@ const specializedBookingSchema = new mongoose.Schema(
     // Event transport / campus shuttle specific
     eventName: { type: String },
     organization: { type: String },
+    venueAddress: { type: String },
+    pickupPoints: [{
+      label: { type: String }, // "Pickup point 1"
+      address: { type: String },
+    }],
+    vehicleCount: { type: Number, default: 1 },
+    pricePerVehicle: { type: Number }, // snapshot of the provider's per-vehicle rate at selection time
+    shuttleFrequencyMinutes: { type: Number }, // loop interval for recurring event shuttles, e.g. 30
 
     // Laundry specific
     itemDetails: { type: String },

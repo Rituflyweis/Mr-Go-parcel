@@ -2249,7 +2249,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"scheduledDate\": \"2026-07-05T09:00:00.000Z\",\n  \"timeSlot\": \"09:00 AM - 11:00 PM\",\n  \"eventName\": \"Tech Conference 2026\",\n  \"pickupPoint\": \"Hotel Lobby\",\n  \"dropPoint\": \"Convention Center\",\n  \"passengers\": 4\n}",
+              "raw": "{\n  \"scheduledDate\": \"2026-07-05T09:00:00.000Z\",\n  \"timeSlot\": \"09:00 AM - 11:00 PM\",\n  \"eventName\": \"Corp Wedding Reception\",\n  \"passengers\": 20,\n  \"venueAddress\": \"123 Twyette Street, Constantinden, PA, 15408\",\n  \"pickupPoints\": [\n    { \"label\": \"Pickup point 1\", \"address\": \"Ent: pick up me\" }\n  ],\n  \"dropPoint\": \"Convention Center\",\n  \"shuttleFrequencyMinutes\": 30\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -2556,12 +2556,13 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"providerId\": \"\"\n}",
+              "raw": "{\n  \"providerId\": \"\",\n  \"vehicleCount\": 1\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
-              }
+              },
+              "description": "vehicleCount is optional (defaults to 1) — for event/group transport, cost = provider's per-vehicle rate x vehicleCount"
             }
           }
         },
