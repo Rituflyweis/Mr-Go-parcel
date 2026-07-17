@@ -9031,6 +9031,322 @@
           }
         }
       ]
+    },
+    {
+      "name": "Campus & Corporate Routes (Rider)",
+      "item": [
+        {
+          "name": "Get Routes",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes?category=campus&status=active",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes"],
+              "query": [
+                { "key": "category", "value": "campus", "description": "campus | corporate" },
+                { "key": "status", "value": "active" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Route By ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/:id",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", ":id"],
+              "variable": [{ "key": "id", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "Book Route (Reserve Seat)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/:id/book",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", ":id", "book"],
+              "variable": [{ "key": "id", "value": "" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"runId\": \"\",\n  \"boardStop\": \"Main Gate\"\n}",
+              "options": { "raw": { "language": "json" } },
+              "description": "Response includes bookingCode — render this as the rider's QR boarding pass"
+            }
+          }
+        },
+        {
+          "name": "My Route Bookings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/my-bookings",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "my-bookings"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Route Booking",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/bookings/:id/cancel",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "bookings", ":id", "cancel"],
+              "variable": [{ "key": "id", "value": "" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Campus & Corporate Routes (Driver)",
+      "item": [
+        {
+          "name": "My Runs (Today)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/driver/runs?date=",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "driver", "runs"],
+              "query": [{ "key": "date", "value": "", "disabled": true, "description": "defaults to today" }]
+            }
+          }
+        },
+        {
+          "name": "Start Run",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/driver/runs/:id/start",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "driver", "runs", ":id", "start"],
+              "variable": [{ "key": "id", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "Complete Run",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/driver/runs/:id/complete",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "driver", "runs", ":id", "complete"],
+              "variable": [{ "key": "id", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "Scan Boarding Pass (QR)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/driver/runs/:id/scan",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "driver", "runs", ":id", "scan"],
+              "variable": [{ "key": "id", "value": "" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bookingCode\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Run Manifest",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/driver/runs/:id/manifest",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "driver", "runs", ":id", "manifest"],
+              "variable": [{ "key": "id", "value": "" }]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Campus & Corporate Routes (Admin)",
+      "item": [
+        {
+          "name": "Get Routes (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/admin?category=&status=",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "admin"],
+              "query": [
+                { "key": "category", "value": "", "disabled": true },
+                { "key": "status", "value": "", "disabled": true }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create Route",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/admin",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "admin"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Campus Loop - North\",\n  \"category\": \"campus\",\n  \"organization\": \"Boston University\",\n  \"capacity\": 40,\n  \"estimatedDurationMinutes\": 45,\n  \"frequencyMinutes\": 45,\n  \"scheduleTimes\": [\"08:00 AM\", \"08:45 AM\", \"09:30 AM\"],\n  \"stops\": [\n    { \"name\": \"Main Gate\", \"order\": 1, \"etaOffsetMinutes\": 0 },\n    { \"name\": \"Engineering Building\", \"order\": 2, \"etaOffsetMinutes\": 6 },\n    { \"name\": \"Student Center\", \"order\": 3, \"etaOffsetMinutes\": 12 },\n    { \"name\": \"Library\", \"order\": 4, \"etaOffsetMinutes\": 18 },\n    { \"name\": \"Recreation Center\", \"order\": 5, \"etaOffsetMinutes\": 24 }\n  ]\n}",
+              "options": { "raw": { "language": "json" } },
+              "description": "category: campus | corporate"
+            }
+          }
+        },
+        {
+          "name": "Update Route",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/admin/:id",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "admin", ":id"],
+              "variable": [{ "key": "id", "value": "" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"capacity\": 45\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Deactivate Route",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/admin/:id",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "admin", ":id"],
+              "variable": [{ "key": "id", "value": "" }]
+            }
+          }
+        },
+        {
+          "name": "Schedule a Run",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/admin/:id/runs",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "admin", ":id", "runs"],
+              "variable": [{ "key": "id", "value": "" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"runDate\": \"2026-07-17\",\n  \"departureTime\": \"08:00 AM\",\n  \"driver\": \"\"\n}",
+              "options": { "raw": { "language": "json" } },
+              "description": "driver is optional at creation — assign later via 'Assign Driver to Run'"
+            }
+          }
+        },
+        {
+          "name": "Assign Driver to Run",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/admin/runs/:id/assign-driver",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "admin", "runs", ":id", "assign-driver"],
+              "variable": [{ "key": "id", "value": "" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"driverId\": \"\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "Route Analytics",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/admin/analytics?from=&to=",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "admin", "analytics"],
+              "query": [
+                { "key": "from", "value": "", "disabled": true },
+                { "key": "to", "value": "", "disabled": true }
+              ]
+            }
+          }
+        }
+      ]
     }
   ]
 }
