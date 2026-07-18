@@ -8,6 +8,7 @@ const routeBookingSchema = new mongoose.Schema(
     route: { type: mongoose.Schema.Types.ObjectId, ref: "Route", required: true },
     routeRun: { type: mongoose.Schema.Types.ObjectId, ref: "RouteRun", required: true },
     rider: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    riderReferenceId: { type: String }, // Student ID / employee badge shown on the boarding pass
     boardStop: { type: String },
     status: {
       type: String,

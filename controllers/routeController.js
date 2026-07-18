@@ -1,6 +1,7 @@
 const Route = require("../models/Route");
 const RouteRun = require("../models/RouteRun");
 const RouteBooking = require("../models/RouteBooking");
+const SpecializedProvider = require("../models/SpecializedProvider");
 const { successResponse, errorResponse } = require("../utils/response");
 
 const todayBounds = (dateStr) => {
@@ -8,6 +9,17 @@ const todayBounds = (dateStr) => {
   const start = new Date(base.getFullYear(), base.getMonth(), base.getDate());
   const end = new Date(start.getTime() + 86400000);
   return { start, end };
+};
+
+// Looks up a vehicle inside a provider's fleet (SpecializedProvider.vehicles) and
+// returns the denormalized {provider, vehicleId, label} to store on a Route, plus
+// the vehicle's own passengerCapacity so "Quick Create Route" can auto-fill capacity.
+const resolveAssignedVehicle = async (providerId, vehicleId) => {
+  if (!providerId || !vehicleId) return null;
+  const provider = await SpecializedProvider.findById(providerId);
+  const vehicle = provider && provider.vehicles.id(vehicleId);
+  if (!vehicle) return { error: "Assigned vehicle not found in that provider's fleet" };
+  return { assignedVehicle: { provider: providerId, vehicleId, label: vehicle.name }, passengerCapacity: vehicle.passengerCapacity };
 };
 
 // ── RIDER ("Choose Your Route", QR boarding pass) ──────────────────────────────
@@ -64,7 +76,7 @@ const bookRoute = async (req, res) => {
     const route = await Route.findOne({ _id: req.params.id, status: "active" });
     if (!route) return errorResponse(res, 404, "Route not found or inactive");
 
-    const { runId, boardStop } = req.body;
+    const { runId, boardStop, riderReferenceId } = req.body;
     if (!runId) return errorResponse(res, 422, "runId is required");
 
     const run = await RouteRun.findOne({ _id: runId, route: route._id, status: { $in: ["scheduled", "idle", "running"] } });
@@ -73,7 +85,7 @@ const bookRoute = async (req, res) => {
     const reservedCount = await RouteBooking.countDocuments({ routeRun: run._id, status: { $in: ["reserved", "boarded"] } });
     if (reservedCount >= route.capacity) return errorResponse(res, 409, "This run is fully booked");
 
-    const booking = await RouteBooking.create({ route: route._id, routeRun: run._id, rider: req.user._id, boardStop });
+    const booking = await RouteBooking.create({ route: route._id, routeRun: run._id, rider: req.user._id, boardStop, riderReferenceId });
     successResponse(res, 201, "Seat reserved — show this boarding pass QR to the driver", { booking });
   } catch (error) {
     errorResponse(res, 500, error.message);
@@ -183,6 +195,27 @@ const scanBoardingPass = async (req, res) => {
   }
 };
 
+// @route PUT /api/routes/driver/runs/:id/stops/:stopIndex/reached
+// Driver marks a stop as reached — feeds the "2/3 stops" progress bar and the
+// per-stop arrival timestamps on the rider's live route timeline.
+const markStopReached = async (req, res) => {
+  try {
+    const run = await RouteRun.findOne({ _id: req.params.id, driver: req.user._id, status: "running" });
+    if (!run) return errorResponse(res, 404, "Run not found or not in progress");
+
+    const stopIndex = Number(req.params.stopIndex);
+    if (run.stopProgress.some((s) => s.stopIndex === stopIndex)) {
+      return errorResponse(res, 409, "This stop was already marked as reached");
+    }
+
+    run.stopProgress.push({ stopIndex, reachedAt: new Date() });
+    await run.save();
+    successResponse(res, 200, "Stop marked as reached", { run });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
 // @route GET /api/routes/driver/runs/:id/manifest
 const getRunManifest = async (req, res) => {
   try {
@@ -204,12 +237,47 @@ const getRunManifest = async (req, res) => {
 // @route POST /api/routes/admin
 const createRoute = async (req, res) => {
   try {
-    const { name, category, organization, stops, capacity, estimatedDurationMinutes, frequencyMinutes, scheduleTimes, provider } = req.body;
+    const {
+      name, category, organization, stops, capacity, estimatedDurationMinutes, frequencyMinutes, scheduleTimes, provider,
+      assignedVehicleProvider, assignedVehicleId,
+    } = req.body;
     if (!name || !category) return errorResponse(res, 422, "name and category are required");
+
+    let assignedVehicle;
+    if (assignedVehicleProvider && assignedVehicleId) {
+      const resolved = await resolveAssignedVehicle(assignedVehicleProvider, assignedVehicleId);
+      if (resolved?.error) return errorResponse(res, 404, resolved.error);
+      assignedVehicle = resolved?.assignedVehicle;
+    }
 
     const route = await Route.create({
       name, category, organization, stops: stops || [], capacity,
-      estimatedDurationMinutes, frequencyMinutes, scheduleTimes: scheduleTimes || [], provider,
+      estimatedDurationMinutes, frequencyMinutes, scheduleTimes: scheduleTimes || [], provider, assignedVehicle,
+    });
+    successResponse(res, 201, "Route created", { route });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route POST /api/routes/admin/quick-create
+// "Quick Create Route" — just a name + an operator's fleet vehicle; capacity is
+// auto-filled from the vehicle's passengerCapacity so the admin doesn't have to
+// re-enter it, and stops/schedule can be filled in later via Update Route.
+const quickCreateRoute = async (req, res) => {
+  try {
+    const { name, category, assignedVehicleProvider, assignedVehicleId } = req.body;
+    if (!name || !category) return errorResponse(res, 422, "name and category are required");
+    if (!assignedVehicleProvider || !assignedVehicleId) return errorResponse(res, 422, "assignedVehicleProvider and assignedVehicleId are required");
+
+    const resolved = await resolveAssignedVehicle(assignedVehicleProvider, assignedVehicleId);
+    if (resolved?.error) return errorResponse(res, 404, resolved.error);
+
+    const route = await Route.create({
+      name, category,
+      assignedVehicle: resolved.assignedVehicle,
+      capacity: resolved.passengerCapacity || undefined,
+      provider: assignedVehicleProvider,
     });
     successResponse(res, 201, "Route created", { route });
   } catch (error) {
@@ -224,6 +292,13 @@ const updateRoute = async (req, res) => {
   try {
     const updates = {};
     ROUTE_ALLOWED_FIELDS.forEach((key) => { if (req.body[key] !== undefined) updates[key] = req.body[key]; });
+
+    const { assignedVehicleProvider, assignedVehicleId } = req.body;
+    if (assignedVehicleProvider && assignedVehicleId) {
+      const resolved = await resolveAssignedVehicle(assignedVehicleProvider, assignedVehicleId);
+      if (resolved?.error) return errorResponse(res, 404, resolved.error);
+      updates.assignedVehicle = resolved.assignedVehicle;
+    }
 
     const route = await Route.findByIdAndUpdate(req.params.id, updates, { new: true });
     if (!route) return errorResponse(res, 404, "Route not found");
@@ -324,6 +399,6 @@ const getRouteAnalytics = async (req, res) => {
 
 module.exports = {
   getRoutes, getRouteById, bookRoute, getMyRouteBookings, cancelRouteBooking,
-  getMyRuns, startRun, completeRun, scanBoardingPass, getRunManifest,
-  createRoute, updateRoute, deactivateRoute, getRoutesAdmin, createRun, assignDriverToRun, getRouteAnalytics,
+  getMyRuns, startRun, completeRun, scanBoardingPass, getRunManifest, markStopReached,
+  createRoute, quickCreateRoute, updateRoute, deactivateRoute, getRoutesAdmin, createRun, assignDriverToRun, getRouteAnalytics,
 };

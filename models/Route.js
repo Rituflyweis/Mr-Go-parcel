@@ -20,6 +20,15 @@ const routeSchema = new mongoose.Schema(
     frequencyMinutes: { type: Number }, // loop interval, e.g. every 45 min
     scheduleTimes: [{ type: String }], // explicit departures, e.g. ["08:00 AM", "08:45 AM"]
     provider: { type: mongoose.Schema.Types.ObjectId, ref: "SpecializedProvider" }, // operator running this route
+
+    // "Vehicle: BUS-001" on the admin route list — points at a specific vehicle inside
+    // the operator's fleet (SpecializedProvider.vehicles subdocument). label is a
+    // snapshot of that vehicle's name so the list can render without an extra join.
+    assignedVehicle: {
+      provider: { type: mongoose.Schema.Types.ObjectId, ref: "SpecializedProvider" },
+      vehicleId: { type: mongoose.Schema.Types.ObjectId },
+      label: { type: String },
+    },
   },
   { timestamps: true }
 );

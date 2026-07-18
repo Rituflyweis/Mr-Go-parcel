@@ -9084,7 +9084,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"runId\": \"\",\n  \"boardStop\": \"Main Gate\"\n}",
+              "raw": "{\n  \"runId\": \"\",\n  \"boardStop\": \"Main Gate\",\n  \"riderReferenceId\": \"STU-56789\"\n}",
               "options": { "raw": { "language": "json" } },
               "description": "Response includes bookingCode — render this as the rider's QR boarding pass"
             }
@@ -9191,6 +9191,24 @@
           }
         },
         {
+          "name": "Mark Stop Reached",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/driver/runs/:id/stops/:stopIndex/reached",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "driver", "runs", ":id", "stops", ":stopIndex", "reached"],
+              "variable": [
+                { "key": "id", "value": "" },
+                { "key": "stopIndex", "value": "1", "description": "matches a stop's `order` on the Route" }
+              ]
+            }
+          }
+        },
+        {
           "name": "Run Manifest",
           "request": {
             "method": "GET",
@@ -9243,9 +9261,30 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Campus Loop - North\",\n  \"category\": \"campus\",\n  \"organization\": \"Boston University\",\n  \"capacity\": 40,\n  \"estimatedDurationMinutes\": 45,\n  \"frequencyMinutes\": 45,\n  \"scheduleTimes\": [\"08:00 AM\", \"08:45 AM\", \"09:30 AM\"],\n  \"stops\": [\n    { \"name\": \"Main Gate\", \"order\": 1, \"etaOffsetMinutes\": 0 },\n    { \"name\": \"Engineering Building\", \"order\": 2, \"etaOffsetMinutes\": 6 },\n    { \"name\": \"Student Center\", \"order\": 3, \"etaOffsetMinutes\": 12 },\n    { \"name\": \"Library\", \"order\": 4, \"etaOffsetMinutes\": 18 },\n    { \"name\": \"Recreation Center\", \"order\": 5, \"etaOffsetMinutes\": 24 }\n  ]\n}",
+              "raw": "{\n  \"name\": \"Campus Loop - North\",\n  \"category\": \"campus\",\n  \"organization\": \"Boston University\",\n  \"capacity\": 40,\n  \"estimatedDurationMinutes\": 45,\n  \"frequencyMinutes\": 45,\n  \"scheduleTimes\": [\"08:00 AM\", \"08:45 AM\", \"09:30 AM\"],\n  \"stops\": [\n    { \"name\": \"Main Gate\", \"order\": 1, \"etaOffsetMinutes\": 0 },\n    { \"name\": \"Engineering Building\", \"order\": 2, \"etaOffsetMinutes\": 6 },\n    { \"name\": \"Student Center\", \"order\": 3, \"etaOffsetMinutes\": 12 },\n    { \"name\": \"Library\", \"order\": 4, \"etaOffsetMinutes\": 18 },\n    { \"name\": \"Recreation Center\", \"order\": 5, \"etaOffsetMinutes\": 24 }\n  ],\n  \"assignedVehicleProvider\": \"\",\n  \"assignedVehicleId\": \"\"\n}",
               "options": { "raw": { "language": "json" } },
-              "description": "category: campus | corporate"
+              "description": "category: campus | corporate. assignedVehicleProvider/assignedVehicleId are optional — a SpecializedProvider _id and one of its vehicles[]._id"
+            }
+          }
+        },
+        {
+          "name": "Quick Create Route",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ADMIN_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/routes/admin/quick-create",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "routes", "admin", "quick-create"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Downtown Loop\",\n  \"category\": \"corporate\",\n  \"assignedVehicleProvider\": \"\",\n  \"assignedVehicleId\": \"\"\n}",
+              "options": { "raw": { "language": "json" } },
+              "description": "Minimal 'Quick Create Route' form — just name + an operator's fleet vehicle. Capacity is auto-filled from the vehicle's passengerCapacity; add stops/schedule later via Update Route."
             }
           }
         },
@@ -9265,8 +9304,9 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"capacity\": 45\n}",
-              "options": { "raw": { "language": "json" } }
+              "raw": "{\n  \"capacity\": 45,\n  \"assignedVehicleProvider\": \"\",\n  \"assignedVehicleId\": \"\"\n}",
+              "options": { "raw": { "language": "json" } },
+              "description": "assignedVehicleProvider/assignedVehicleId are optional — pass both to reassign the route's vehicle"
             }
           }
         },

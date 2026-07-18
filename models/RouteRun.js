@@ -15,6 +15,12 @@ const routeRunSchema = new mongoose.Schema(
       default: "scheduled",
     },
     currentOccupancy: { type: Number, default: 0 },
+    // Per-stop arrival tracking — backs the "2/3 stops" progress bar and the
+    // per-stop timestamps ("Main Gate 2:34 PM") on the driver's live route screen.
+    stopProgress: [{
+      stopIndex: { type: Number, required: true },
+      reachedAt: { type: Date, default: Date.now },
+    }],
     startedAt: { type: Date },
     completedAt: { type: Date },
   },
