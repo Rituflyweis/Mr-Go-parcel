@@ -86,7 +86,27 @@ const specializedProviderSchema = new mongoose.Schema(
       type: { type: String, enum: ["wash_fold", "dry_cleaning", "ironing", "upholstery"], required: true },
       label: { type: String }, // "Wash & Fold"
       description: { type: String }, // "Standard washing and folding service"
-      ratePerLb: { type: Number }, // "$1.5/lb"
+      ratePerLb: { type: Number }, // "Base Price per lb" — "$1.5/lb"
+      rushFeePerLb: { type: Number }, // "Rush Fee per lb" — "$0.50"
+      isActive: { type: Boolean, default: true }, // on/off toggle on "Service & Pricing"
+    }],
+    // "Pickup Windows" — Manage Availability. Rider picks one of these slots at checkout.
+    pickupWindows: [{
+      day: { type: String, enum: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"], required: true },
+      startTime: { type: String, required: true }, // "08:00"
+      endTime: { type: String, required: true }, // "10:00"
+      isActive: { type: Boolean, default: true },
+      maxCapacity: { type: Number, default: 5 }, // "5 pickups" — windows auto-rotate when full
+    }],
+    // "Delivery Windows" — separate from pickup since delivery slots have their own
+    // capacity and can auto-close once full ("Auto-Close: Overbooked slots auto-marked").
+    deliveryWindows: [{
+      day: { type: String, enum: ["mon", "tue", "wed", "thu", "fri", "sat", "sun"], required: true },
+      startTime: { type: String, required: true },
+      endTime: { type: String, required: true },
+      isActive: { type: Boolean, default: true },
+      maxCapacity: { type: Number, default: 3 },
+      autoClose: { type: Boolean, default: true },
     }],
 
     serviceRadius: { type: Number, default: 25 }, // miles

@@ -6,7 +6,7 @@ const {
   createCustomerBooking, getMyBookings, getMyBookingById, cancelMyBooking,
   getProviders, getProviderDetails, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
   addTip, rateBooking, toggleProviderAvailability, getProviderDashboard, getAvailableTrips,
-  getProviderTrips, getProviderEarnings, acceptTrip, startTrip, completeTrip, declineTrip,
+  getProviderTrips, getProviderEarnings, getProviderPayouts, updateLaundryStatus, acceptTrip, startTrip, completeTrip, declineTrip,
   createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,
   getAgencySchedule, getAgencyPerformance, getRecentDestinations, getJourneyStats, getPatientDashboard,
   registerAsProvider, getMyProviderProfiles, updateMyProviderProfile,
@@ -53,9 +53,11 @@ router.get("/provider/dashboard", protect, getProviderDashboard);
 router.get("/provider/trips", protect, getProviderTrips);
 router.get("/provider/trips/available", protect, getAvailableTrips);
 router.get("/provider/earnings", protect, getProviderEarnings);
+router.get("/provider/payouts", protect, getProviderPayouts);
 router.put("/provider/trips/:id/accept", protect, acceptTrip);
 router.put("/provider/trips/:id/start", protect, startTrip);
 router.put("/provider/trips/:id/complete", protect, completeTrip);
+router.put("/provider/trips/:id/laundry-status", protect, updateLaundryStatus);
 router.put("/provider/trips/:id/decline", protect, declineTrip);
 
 // Agency / Hospital portal — manage patients, book rides on their behalf

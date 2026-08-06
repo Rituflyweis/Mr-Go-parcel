@@ -2,6 +2,7 @@ const SpecializedBooking = require("../models/SpecializedBooking");
 const SpecializedProvider = require("../models/SpecializedProvider");
 const Patient = require("../models/Patient");
 const VerificationDocument = require("../models/VerificationDocument");
+const Payout = require("../models/Payout");
 const { successResponse, errorResponse } = require("../utils/response");
 
 const getStats = async (serviceType, req) => {
@@ -354,8 +355,10 @@ const selectProvider = async (req, res) => {
     if (booking.serviceType === "laundry" && booking.laundryServiceType) {
       const laundryService = provider.laundryServices?.find((s) => s.type === booking.laundryServiceType);
       if (laundryService?.ratePerLb) {
+        const perLbRate = laundryService.ratePerLb + (booking.isRush ? laundryService.rushFeePerLb || 0 : 0);
         booking.ratePerLb = laundryService.ratePerLb;
-        if (booking.estimatedWeightLbs) booking.cost = laundryService.ratePerLb * booking.estimatedWeightLbs;
+        if (booking.isRush) booking.rushFeePerLb = laundryService.rushFeePerLb || 0;
+        if (booking.estimatedWeightLbs) booking.cost = perLbRate * booking.estimatedWeightLbs;
       }
     }
 
@@ -498,7 +501,7 @@ const registerAsProvider = async (req, res) => {
       vehicleType, passengerCapacityMin, passengerCapacityMax,
       luggageCapacityMin, luggageCapacityMax, amenities, shuttleFare,
       dotMcNumber, fleetSize, coverageAreas, servicesOffered,
-      turnaroundHours, laundryServices,
+      turnaroundHours, laundryServices, pickupWindows, deliveryWindows,
       serviceRadius, zipCodesServed, availableTimeBlocks,
     } = req.body;
 
@@ -512,6 +515,7 @@ const registerAsProvider = async (req, res) => {
       luggageCapacityMin, luggageCapacityMax, amenities, shuttleFare,
       dotMcNumber, fleetSize, coverageAreas: coverageAreas || [], servicesOffered: servicesOffered || [],
       turnaroundHours, laundryServices: laundryServices || [],
+      pickupWindows: pickupWindows || [], deliveryWindows: deliveryWindows || [],
       serviceRadius, zipCodesServed, availableTimeBlocks,
     });
 
@@ -541,7 +545,7 @@ const PROVIDER_PROFILE_ALLOWED_FIELDS = [
   "vehicleType", "passengerCapacityMin", "passengerCapacityMax",
   "luggageCapacityMin", "luggageCapacityMax", "amenities", "shuttleFare",
   "dotMcNumber", "fleetSize", "coverageAreas", "servicesOffered",
-  "turnaroundHours", "laundryServices",
+  "turnaroundHours", "laundryServices", "pickupWindows", "deliveryWindows",
   "serviceRadius", "zipCodesServed", "availableTimeBlocks",
 ];
 const updateMyProviderProfile = async (req, res) => {
@@ -752,7 +756,7 @@ const getProviderDashboard = async (req, res) => {
       SpecializedBooking.countDocuments({ provider: provider._id, status: "in_progress" }),
     ]);
 
-    successResponse(res, 200, "Provider dashboard", {
+    const dashboard = {
       name: provider.name,
       verificationStatus: provider.verificationStatus,
       isOnline: provider.isOnline,
@@ -766,7 +770,23 @@ const getProviderDashboard = async (req, res) => {
       pendingBookings: pendingCount,
       activeTrips: activeCount,
       acceptedTrips,
-    });
+    };
+
+    // Laundry dashboard splits orders by laundryStatus instead of the coarse status
+    // field — "Pending Pickups" / "Active Orders" (picked up or processing) / "Ready
+    // for Delivery" are each their own section on the provider home screen.
+    if (provider.serviceType === "laundry") {
+      const [pendingPickups, activeOrders, readyForDelivery] = await Promise.all([
+        SpecializedBooking.find({ provider: provider._id, laundryStatus: "pending_pickup" }).sort({ scheduledDate: 1 }),
+        SpecializedBooking.find({ provider: provider._id, laundryStatus: { $in: ["picked_up", "processing"] } }).sort({ scheduledDate: 1 }),
+        SpecializedBooking.find({ provider: provider._id, laundryStatus: "ready_for_delivery" }).sort({ scheduledDate: 1 }),
+      ]);
+      dashboard.pendingPickups = { count: pendingPickups.length, orders: pendingPickups };
+      dashboard.activeOrders = { count: activeOrders.length, orders: activeOrders };
+      dashboard.readyForDelivery = { count: readyForDelivery.length, orders: readyForDelivery };
+    }
+
+    successResponse(res, 200, "Provider dashboard", dashboard);
   } catch (error) {
     errorResponse(res, 500, error.message);
   }
@@ -801,15 +821,48 @@ const getProviderTrips = async (req, res) => {
     const provider = await getOwnProvider(req);
     if (!provider) return errorResponse(res, 404, "Provider profile not found");
 
-    const { status } = req.query;
+    const { status, laundryStatus } = req.query;
     const filter = { provider: provider._id };
     if (status) filter.status = status;
+    if (laundryStatus) filter.laundryStatus = laundryStatus; // "Pickup" / "In Delivery" quick-action tabs
 
     const trips = await SpecializedBooking.find(filter)
       .populate("customer", "name phone")
       .sort({ scheduledDate: 1 });
 
     successResponse(res, 200, "Provider trips", { trips, count: trips.length });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route PUT /api/specialized/provider/trips/:id/laundry-status
+// Advances an order through pending_pickup -> picked_up -> processing ->
+// ready_for_delivery -> in_delivery -> completed.
+const LAUNDRY_STATUS_VALUES = ["pending_pickup", "picked_up", "processing", "ready_for_delivery", "in_delivery", "completed"];
+const updateLaundryStatus = async (req, res) => {
+  try {
+    const provider = await getOwnProvider(req);
+    if (!provider) return errorResponse(res, 404, "Provider profile not found");
+    if (provider.serviceType !== "laundry") return errorResponse(res, 400, "This action is only for laundry providers");
+
+    const { laundryStatus } = req.body;
+    if (!LAUNDRY_STATUS_VALUES.includes(laundryStatus)) {
+      return errorResponse(res, 422, `laundryStatus must be one of: ${LAUNDRY_STATUS_VALUES.join(", ")}`);
+    }
+
+    const booking = await SpecializedBooking.findOne({ _id: req.params.id, provider: provider._id });
+    if (!booking) return errorResponse(res, 404, "Order not found");
+
+    booking.laundryStatus = laundryStatus;
+    booking.statusTimeline.push({ status: laundryStatus });
+    if (laundryStatus === "completed") {
+      booking.status = "completed";
+    } else if (booking.status === "scheduled") {
+      booking.status = "in_progress";
+    }
+    await booking.save();
+    successResponse(res, 200, "Order status updated", { booking });
   } catch (error) {
     errorResponse(res, 500, error.message);
   }
@@ -833,6 +886,47 @@ const getProviderEarnings = async (req, res) => {
     successResponse(res, 200, "Provider earnings", {
       summary: { totalEarnings, completedTrips: trips.length },
       trips,
+    });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/provider/payouts
+// "Payout Center" — available balance (completed, not yet paid out), this week/month
+// totals, the individual unpaid orders, and past processed payout batches.
+const getProviderPayouts = async (req, res) => {
+  try {
+    const provider = await getOwnProvider(req);
+    if (!provider) return errorResponse(res, 404, "Provider profile not found");
+
+    const now = new Date();
+    const weekStart = new Date(now); weekStart.setDate(now.getDate() - 6); weekStart.setHours(0, 0, 0, 0);
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const [unpaidAgg, weekAgg, monthAgg, pendingPayouts, payoutHistory] = await Promise.all([
+      SpecializedBooking.aggregate([
+        { $match: { provider: provider._id, status: "completed", payoutStatus: "unpaid" } },
+        { $group: { _id: null, total: { $sum: "$cost" } } },
+      ]),
+      SpecializedBooking.aggregate([
+        { $match: { provider: provider._id, status: "completed", updatedAt: { $gte: weekStart } } },
+        { $group: { _id: null, total: { $sum: "$cost" } } },
+      ]),
+      SpecializedBooking.aggregate([
+        { $match: { provider: provider._id, status: "completed", updatedAt: { $gte: monthStart } } },
+        { $group: { _id: null, total: { $sum: "$cost" } } },
+      ]),
+      SpecializedBooking.find({ provider: provider._id, status: "completed", payoutStatus: "unpaid" }).sort({ updatedAt: -1 }),
+      Payout.find({ recipient: provider.user, recipientType: "specialized_provider" }).sort({ createdAt: -1 }),
+    ]);
+
+    successResponse(res, 200, "Provider payouts", {
+      availableBalance: unpaidAgg[0]?.total || 0,
+      thisWeek: weekAgg[0]?.total || 0,
+      thisMonth: monthAgg[0]?.total || 0,
+      pendingPayouts,
+      payoutHistory,
     });
   } catch (error) {
     errorResponse(res, 500, error.message);
@@ -1212,7 +1306,7 @@ module.exports = {
   createCustomerBooking, getMyBookings, getMyBookingById, cancelMyBooking,
   getProviders, getProviderDetails, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
   addTip, rateBooking, toggleProviderAvailability, getProviderDashboard, getAvailableTrips,
-  getProviderTrips, getProviderEarnings, acceptTrip, startTrip, completeTrip, declineTrip,
+  getProviderTrips, getProviderEarnings, getProviderPayouts, updateLaundryStatus, acceptTrip, startTrip, completeTrip, declineTrip,
   createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,
   getAgencySchedule, getAgencyPerformance, getRecentDestinations, getJourneyStats, getPatientDashboard,
   registerAsProvider, getMyProviderProfiles, updateMyProviderProfile, getProvidersAdmin, approveProviderAdmin,

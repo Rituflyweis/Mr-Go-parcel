@@ -2323,7 +2323,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"scheduledDate\": \"2026-07-05T14:00:00.000Z\",\n  \"timeSlot\": \"08:00 - 10:00\",\n  \"itemDetails\": \"2 bags of clothes, dry cleaning\",\n  \"pickupAddress\": \"456 Pine Street, Apt 3B, Seattle, WA 98101\",\n  \"deliveryAddress\": \"456 Pine Street, Apt 3B, Seattle, WA 98101\",\n  \"laundryServiceType\": \"wash_fold\",\n  \"estimatedWeightLbs\": 10,\n  \"preferences\": {\n    \"fragranceFree\": false,\n    \"fabricSoftener\": true\n  },\n  \"specialInstructions\": \"Separate whites from colors\"\n}",
+              "raw": "{\n  \"scheduledDate\": \"2026-07-05T14:00:00.000Z\",\n  \"timeSlot\": \"08:00 - 10:00\",\n  \"itemDetails\": \"2 bags of clothes, dry cleaning\",\n  \"pickupAddress\": \"456 Pine Street, Apt 3B, Seattle, WA 98101\",\n  \"deliveryAddress\": \"456 Pine Street, Apt 3B, Seattle, WA 98101\",\n  \"laundryServiceType\": \"wash_fold\",\n  \"estimatedWeightLbs\": 10,\n  \"isRush\": false,\n  \"preferences\": {\n    \"fragranceFree\": false,\n    \"fabricSoftener\": true\n  },\n  \"specialInstructions\": \"Separate whites from colors\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -7869,7 +7869,7 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/specialized/provider/trips?status=scheduled",
+              "raw": "{{BASE_URL}}/api/specialized/provider/trips?status=scheduled&laundryStatus=",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -7884,6 +7884,12 @@
                   "key": "status",
                   "value": "scheduled",
                   "description": "scheduled (Pending tab) | in_progress (Active tab) | completed"
+                },
+                {
+                  "key": "laundryStatus",
+                  "value": "",
+                  "disabled": true,
+                  "description": "laundry only — pending_pickup | picked_up | processing | ready_for_delivery | in_delivery | completed (Pickup / In Delivery quick-action tabs)"
                 }
               ]
             }
@@ -8007,6 +8013,43 @@
                 "earnings"
               ]
             }
+          }
+        },
+        {
+          "name": "Update Laundry Order Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/provider/trips/:id/laundry-status",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "specialized", "provider", "trips", ":id", "laundry-status"],
+              "variable": [{ "key": "id", "value": "" }]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"laundryStatus\": \"picked_up\"\n}",
+              "options": { "raw": { "language": "json" } },
+              "description": "laundryStatus: pending_pickup | picked_up | processing | ready_for_delivery | in_delivery | completed"
+            }
+          }
+        },
+        {
+          "name": "Provider Payouts (Payout Center)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/provider/payouts",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "specialized", "provider", "payouts"]
+            },
+            "description": "Available Balance (unpaid completed orders), This Week / This Month totals, Pending Payouts list, and Payout History"
           }
         },
         {
@@ -8874,9 +8917,9 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"serviceType\": \"laundry\",\n  \"name\": \"Fresh & Clean Laundry\",\n  \"phone\": \"5551234567\",\n  \"email\": \"contact@freshclean.com\",\n  \"turnaroundHours\": 24,\n  \"laundryServices\": [\n    { \"type\": \"wash_fold\", \"label\": \"Wash & Fold\", \"description\": \"Standard washing and folding service\", \"ratePerLb\": 1.5 },\n    { \"type\": \"dry_cleaning\", \"label\": \"Dry Cleaning\", \"description\": \"Professional dry cleaning for delicate items\", \"ratePerLb\": 1.5 },\n    { \"type\": \"ironing\", \"label\": \"Ironing\", \"description\": \"Professional ironing and creasing\", \"ratePerLb\": 1.2 }\n  ],\n  \"zipCodesServed\": [\"98101\", \"98102\"],\n  \"availableTimeBlocks\": [\"08:00-10:00\", \"10:00-12:00\", \"12:00-14:00\"]\n}",
+              "raw": "{\n  \"serviceType\": \"laundry\",\n  \"name\": \"Fresh & Clean Laundry\",\n  \"phone\": \"5551234567\",\n  \"email\": \"contact@freshclean.com\",\n  \"turnaroundHours\": 24,\n  \"laundryServices\": [\n    { \"type\": \"wash_fold\", \"label\": \"Wash & Fold\", \"description\": \"Standard washing and folding service\", \"ratePerLb\": 1.5, \"rushFeePerLb\": 0.5, \"isActive\": true },\n    { \"type\": \"dry_cleaning\", \"label\": \"Dry Cleaning\", \"description\": \"Professional dry cleaning for delicate items\", \"ratePerLb\": 2.0, \"rushFeePerLb\": 0.75, \"isActive\": true },\n    { \"type\": \"ironing\", \"label\": \"Ironing\", \"description\": \"Professional ironing and creasing\", \"ratePerLb\": 1.2, \"rushFeePerLb\": 0.5, \"isActive\": true }\n  ],\n  \"pickupWindows\": [\n    { \"day\": \"mon\", \"startTime\": \"08:00\", \"endTime\": \"10:00\", \"isActive\": true, \"maxCapacity\": 5 },\n    { \"day\": \"mon\", \"startTime\": \"14:00\", \"endTime\": \"16:00\", \"isActive\": true, \"maxCapacity\": 5 }\n  ],\n  \"deliveryWindows\": [\n    { \"day\": \"mon\", \"startTime\": \"08:00\", \"endTime\": \"10:00\", \"isActive\": true, \"maxCapacity\": 3, \"autoClose\": true },\n    { \"day\": \"mon\", \"startTime\": \"14:00\", \"endTime\": \"16:00\", \"isActive\": true, \"maxCapacity\": 3, \"autoClose\": true }\n  ],\n  \"zipCodesServed\": [\"98101\", \"98102\"]\n}",
               "options": { "raw": { "language": "json" } },
-              "description": "laundryServices[].type: wash_fold | dry_cleaning | ironing | upholstery"
+              "description": "laundryServices[].type: wash_fold | dry_cleaning | ironing | upholstery. pickupWindows/deliveryWindows[].day: mon|tue|wed|thu|fri|sat|sun. These same arrays can be re-saved wholesale via Update My Provider Profile for the Service & Pricing / Pickup Windows / Delivery Windows screens."
             }
           }
         },

@@ -33,6 +33,10 @@ const specializedBookingSchema = new mongoose.Schema(
     timeSlot: { type: String }, // "09:00 AM - 11:00 AM"
     cost: { type: Number, default: 0 },
     tip: { type: Number, default: 0 },
+    // Whether this completed booking's earnings have been paid out to the provider yet —
+    // backs the provider's "Available Balance" vs "Payout History" split.
+    payoutStatus: { type: String, enum: ["unpaid", "paid"], default: "unpaid" },
+    payout: { type: mongoose.Schema.Types.ObjectId, ref: "Payout" },
     rating: { type: Number, default: 0, min: 0, max: 5 },
     review: { type: String },
     notes: { type: String },
@@ -117,8 +121,18 @@ const specializedBookingSchema = new mongoose.Schema(
     // Laundry specific
     itemDetails: { type: String },
     laundryServiceType: { type: String, enum: ["wash_fold", "dry_cleaning", "ironing", "upholstery"] },
+    // Fine-grained order lifecycle — the provider dashboard's "Pending Pickups" / "Active
+    // Orders" / "Ready for Delivery" / "In Delivery" sections filter on this, not the
+    // coarse `status` (which only tracks scheduled/in_progress/completed/cancelled).
+    laundryStatus: {
+      type: String,
+      enum: ["pending_pickup", "picked_up", "processing", "ready_for_delivery", "in_delivery", "completed"],
+      default: "pending_pickup",
+    },
     estimatedWeightLbs: { type: Number },
     ratePerLb: { type: Number }, // snapshot of the provider's rate at selection time
+    isRush: { type: Boolean, default: false },
+    rushFeePerLb: { type: Number }, // snapshot of the provider's rush fee at selection time
     preferences: {
       fragranceFree: { type: Boolean, default: false },
       fabricSoftener: { type: Boolean, default: false },

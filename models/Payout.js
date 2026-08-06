@@ -4,7 +4,7 @@ const payoutSchema = new mongoose.Schema(
   {
     payoutId: { type: String, unique: true },
     recipient: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-    recipientType: { type: String, enum: ["driver", "partner"], required: true },
+    recipientType: { type: String, enum: ["driver", "partner", "specialized_provider"], required: true },
     amount: { type: Number, required: true },
     currency: { type: String, default: "USD" },
     period: { type: String }, // "Dec 17 - Dec 23, 2024"
