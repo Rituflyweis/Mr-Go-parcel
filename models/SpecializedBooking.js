@@ -116,6 +116,14 @@ const specializedBookingSchema = new mongoose.Schema(
 
     // Laundry specific
     itemDetails: { type: String },
+    laundryServiceType: { type: String, enum: ["wash_fold", "dry_cleaning", "ironing", "upholstery"] },
+    estimatedWeightLbs: { type: Number },
+    ratePerLb: { type: Number }, // snapshot of the provider's rate at selection time
+    preferences: {
+      fragranceFree: { type: Boolean, default: false },
+      fabricSoftener: { type: Boolean, default: false },
+    },
+    specialInstructions: { type: String },
 
     // Tow service specific
     vehicleInfo: { type: String },

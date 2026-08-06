@@ -4,7 +4,7 @@ const { protect } = require("../middleware/auth");
 const upload = require("../middleware/upload");
 const {
   createCustomerBooking, getMyBookings, getMyBookingById, cancelMyBooking,
-  getProviders, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
+  getProviders, getProviderDetails, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
   addTip, rateBooking, toggleProviderAvailability, getProviderDashboard, getAvailableTrips,
   getProviderTrips, getProviderEarnings, acceptTrip, startTrip, completeTrip, declineTrip,
   createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,
@@ -30,6 +30,7 @@ router.put("/providers/me/:id/vehicles/:vehicleId", protect, updateVehicle);
 router.delete("/providers/me/:id/vehicles/:vehicleId", protect, deleteVehicle);
 
 router.get("/:serviceType/providers", protect, getProviders);
+router.get("/:serviceType/providers/:providerId", protect, getProviderDetails);
 router.post("/:serviceType/book", protect, createCustomerBooking);
 router.get("/my-bookings", protect, getMyBookings);
 router.get("/my-bookings/:id", protect, getMyBookingById);

@@ -2323,12 +2323,13 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"scheduledDate\": \"2026-07-05T14:00:00.000Z\",\n  \"timeSlot\": \"02:00 PM - 04:00 PM\",\n  \"itemDetails\": \"2 bags of clothes, dry cleaning\",\n  \"pickupAddress\": \"123 Main St, Boston\",\n  \"deliveryAddress\": \"123 Main St, Boston\"\n}",
+              "raw": "{\n  \"scheduledDate\": \"2026-07-05T14:00:00.000Z\",\n  \"timeSlot\": \"08:00 - 10:00\",\n  \"itemDetails\": \"2 bags of clothes, dry cleaning\",\n  \"pickupAddress\": \"456 Pine Street, Apt 3B, Seattle, WA 98101\",\n  \"deliveryAddress\": \"456 Pine Street, Apt 3B, Seattle, WA 98101\",\n  \"laundryServiceType\": \"wash_fold\",\n  \"estimatedWeightLbs\": 10,\n  \"preferences\": {\n    \"fragranceFree\": false,\n    \"fabricSoftener\": true\n  },\n  \"specialInstructions\": \"Separate whites from colors\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
                 }
-              }
+              },
+              "description": "laundryServiceType: wash_fold | dry_cleaning | ironing | upholstery. cost is computed server-side (ratePerLb x estimatedWeightLbs) when you call Select Provider — it cannot be set here."
             }
           }
         },
@@ -2476,7 +2477,7 @@
               }
             ],
             "url": {
-              "raw": "{{BASE_URL}}/api/specialized/:serviceType/providers?search=&specialty=&zipCode=&minRating=&sortBy=rating",
+              "raw": "{{BASE_URL}}/api/specialized/:serviceType/providers?search=&specialty=&zipCode=&minRating=&serviceSubType=&sortBy=rating",
               "host": [
                 "{{BASE_URL}}"
               ],
@@ -2508,6 +2509,12 @@
                   "disabled": true
                 },
                 {
+                  "key": "serviceSubType",
+                  "value": "",
+                  "disabled": true,
+                  "description": "laundry: wash_fold | dry_cleaning | ironing | upholstery — the 'All Services / Wash & Fold / Dry Cleaning' tabs"
+                },
+                {
                   "key": "sortBy",
                   "value": "rating"
                 }
@@ -2519,6 +2526,25 @@
                 }
               ]
             }
+          }
+        },
+        {
+          "name": "Get Provider Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/:serviceType/providers/:providerId",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "specialized", ":serviceType", "providers", ":providerId"],
+              "variable": [
+                { "key": "serviceType", "value": "laundry" },
+                { "key": "providerId", "value": "" }
+              ]
+            },
+            "description": "\"Partner Details\" screen — full provider profile (services offered, rates, reviews)"
           }
         },
         {
@@ -2562,7 +2588,7 @@
                   "language": "json"
                 }
               },
-              "description": "vehicleCount is optional (defaults to 1) — for event/group transport, cost = provider's per-vehicle rate x vehicleCount"
+              "description": "vehicleCount is optional (defaults to 1) — for event/group transport, cost = provider's per-vehicle rate x vehicleCount. For laundry bookings, cost is instead computed as the provider's ratePerLb (for the booking's laundryServiceType) x estimatedWeightLbs."
             }
           }
         },
@@ -8830,6 +8856,27 @@
                 }
               },
               "description": "servicesOffered: airport_shuttle | hotel_shuttle | event_shuttle | corporate_shuttle | city_tour | museum_attraction_tour | winery_brewery_tour | charter"
+            }
+          }
+        },
+        {
+          "name": "Register as Laundry/Dry Cleaning Provider",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/specialized/providers/register",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "specialized", "providers", "register"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceType\": \"laundry\",\n  \"name\": \"Fresh & Clean Laundry\",\n  \"phone\": \"5551234567\",\n  \"email\": \"contact@freshclean.com\",\n  \"turnaroundHours\": 24,\n  \"laundryServices\": [\n    { \"type\": \"wash_fold\", \"label\": \"Wash & Fold\", \"description\": \"Standard washing and folding service\", \"ratePerLb\": 1.5 },\n    { \"type\": \"dry_cleaning\", \"label\": \"Dry Cleaning\", \"description\": \"Professional dry cleaning for delicate items\", \"ratePerLb\": 1.5 },\n    { \"type\": \"ironing\", \"label\": \"Ironing\", \"description\": \"Professional ironing and creasing\", \"ratePerLb\": 1.2 }\n  ],\n  \"zipCodesServed\": [\"98101\", \"98102\"],\n  \"availableTimeBlocks\": [\"08:00-10:00\", \"10:00-12:00\", \"12:00-14:00\"]\n}",
+              "options": { "raw": { "language": "json" } },
+              "description": "laundryServices[].type: wash_fold | dry_cleaning | ironing | upholstery"
             }
           }
         },

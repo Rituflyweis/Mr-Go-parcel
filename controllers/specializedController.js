@@ -193,6 +193,12 @@ const deleteBooking = async (req, res) => {
 
 const VALID_SERVICE_TYPES = ["nemt", "notary", "movers", "shuttle", "event_transport", "campus_shuttle", "laundry", "tow"];
 
+// Fields a customer must never set directly on their own booking — cost/status/provider
+// etc. are only ever meant to be written server-side (selectProvider, admin, driver
+// actions). Without stripping these, `...req.body` let a client POST `{ cost: 0,
+// status: "completed" }` and get a free, pre-confirmed booking.
+const PROTECTED_BOOKING_FIELDS = ["cost", "status", "statusTimeline", "provider", "bookingId", "customer", "assignedDriver", "rating", "review", "tip", "ratePerLb", "pricePerVehicle"];
+
 // @route POST /api/specialized/:serviceType/book
 const createCustomerBooking = async (req, res) => {
   try {
@@ -201,8 +207,11 @@ const createCustomerBooking = async (req, res) => {
       return errorResponse(res, 400, "Invalid service type");
     }
 
+    const safeBody = { ...req.body };
+    PROTECTED_BOOKING_FIELDS.forEach((field) => delete safeBody[field]);
+
     const booking = await SpecializedBooking.create({
-      ...req.body,
+      ...safeBody,
       serviceType,
       customer: req.user._id,
     });
@@ -273,7 +282,7 @@ const getProviders = async (req, res) => {
     if (!VALID_SERVICE_TYPES.includes(serviceType)) {
       return errorResponse(res, 400, "Invalid service type");
     }
-    const { search, specialty, zipCode, minRating, passengers, sortBy = "rating" } = req.query;
+    const { search, specialty, zipCode, minRating, passengers, serviceSubType, sortBy = "rating" } = req.query;
 
     const filter = { serviceType, isActive: true, isApproved: true };
     if (search) filter.name = { $regex: search, $options: "i" };
@@ -281,6 +290,8 @@ const getProviders = async (req, res) => {
     if (zipCode) filter.zipCodesServed = zipCode;
     if (minRating) filter.rating = { $gte: Number(minRating) };
     if (passengers) filter.passengerCapacityMax = { $gte: Number(passengers) };
+    // "All Services / Wash & Fold / Dry Cleaning" tabs on the laundry home screen
+    if (serviceSubType) filter["laundryServices.type"] = serviceSubType;
 
     const sortMap = {
       rating: { rating: -1 },
@@ -290,6 +301,23 @@ const getProviders = async (req, res) => {
 
     const providers = await SpecializedProvider.find(filter).sort(sortMap[sortBy] || sortMap.rating);
     successResponse(res, 200, "Available providers", { providers });
+  } catch (error) {
+    errorResponse(res, 500, error.message);
+  }
+};
+
+// @route GET /api/specialized/:serviceType/providers/:providerId
+// "Partner Details" screen — nothing previously let the customer fetch a single
+// provider's full profile (services offered, rates, reviews) once selected from the list.
+const getProviderDetails = async (req, res) => {
+  try {
+    const { serviceType, providerId } = req.params;
+    if (!VALID_SERVICE_TYPES.includes(serviceType)) return errorResponse(res, 400, "Invalid service type");
+
+    const provider = await SpecializedProvider.findOne({ _id: providerId, serviceType, isActive: true, isApproved: true });
+    if (!provider) return errorResponse(res, 404, "Provider not found");
+
+    successResponse(res, 200, "Provider details", { provider });
   } catch (error) {
     errorResponse(res, 500, error.message);
   }
@@ -319,6 +347,18 @@ const selectProvider = async (req, res) => {
     booking.pricePerVehicle = pricePerVehicle;
     booking.vehicleCount = count;
     booking.cost = pricePerVehicle * count;
+
+    // Laundry is priced by actual weight, not a flat per-unit rate — "$1.5/lb x 10 lbs".
+    // Final weighing happens at pickup, so this is still an estimate the driver/provider
+    // can adjust later, but it must come from the provider's own rate, not the client.
+    if (booking.serviceType === "laundry" && booking.laundryServiceType) {
+      const laundryService = provider.laundryServices?.find((s) => s.type === booking.laundryServiceType);
+      if (laundryService?.ratePerLb) {
+        booking.ratePerLb = laundryService.ratePerLb;
+        if (booking.estimatedWeightLbs) booking.cost = laundryService.ratePerLb * booking.estimatedWeightLbs;
+      }
+    }
+
     await booking.save();
     successResponse(res, 200, "Provider selected", { booking });
   } catch (error) {
@@ -458,6 +498,7 @@ const registerAsProvider = async (req, res) => {
       vehicleType, passengerCapacityMin, passengerCapacityMax,
       luggageCapacityMin, luggageCapacityMax, amenities, shuttleFare,
       dotMcNumber, fleetSize, coverageAreas, servicesOffered,
+      turnaroundHours, laundryServices,
       serviceRadius, zipCodesServed, availableTimeBlocks,
     } = req.body;
 
@@ -470,6 +511,7 @@ const registerAsProvider = async (req, res) => {
       vehicleType, passengerCapacityMin, passengerCapacityMax,
       luggageCapacityMin, luggageCapacityMax, amenities, shuttleFare,
       dotMcNumber, fleetSize, coverageAreas: coverageAreas || [], servicesOffered: servicesOffered || [],
+      turnaroundHours, laundryServices: laundryServices || [],
       serviceRadius, zipCodesServed, availableTimeBlocks,
     });
 
@@ -499,6 +541,7 @@ const PROVIDER_PROFILE_ALLOWED_FIELDS = [
   "vehicleType", "passengerCapacityMin", "passengerCapacityMax",
   "luggageCapacityMin", "luggageCapacityMax", "amenities", "shuttleFare",
   "dotMcNumber", "fleetSize", "coverageAreas", "servicesOffered",
+  "turnaroundHours", "laundryServices",
   "serviceRadius", "zipCodesServed", "availableTimeBlocks",
 ];
 const updateMyProviderProfile = async (req, res) => {
@@ -1167,7 +1210,7 @@ const getPatientDashboard = async (req, res) => {
 module.exports = {
   getNEMT, createNEMT, getNotary, createNotary, getMovers, createMovers, getShuttle, createShuttle, updateBooking, deleteBooking,
   createCustomerBooking, getMyBookings, getMyBookingById, cancelMyBooking,
-  getProviders, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
+  getProviders, getProviderDetails, selectProvider, uploadBookingDocuments, submitInventory, reportDamage, getStatusTimeline,
   addTip, rateBooking, toggleProviderAvailability, getProviderDashboard, getAvailableTrips,
   getProviderTrips, getProviderEarnings, acceptTrip, startTrip, completeTrip, declineTrip,
   createPatient, getPatients, updatePatient, deletePatient, bookRideForPatient, getAgencyDashboard,

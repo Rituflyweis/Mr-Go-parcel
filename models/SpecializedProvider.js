@@ -80,6 +80,15 @@ const specializedProviderSchema = new mongoose.Schema(
       status: { type: String, enum: ["active", "inactive", "maintenance"], default: "active" },
     }],
 
+    // Laundry / dry cleaning specific
+    turnaroundHours: { type: Number }, // "24 hours Delivery"
+    laundryServices: [{
+      type: { type: String, enum: ["wash_fold", "dry_cleaning", "ironing", "upholstery"], required: true },
+      label: { type: String }, // "Wash & Fold"
+      description: { type: String }, // "Standard washing and folding service"
+      ratePerLb: { type: Number }, // "$1.5/lb"
+    }],
+
     serviceRadius: { type: Number, default: 25 }, // miles
     zipCodesServed: [{ type: String }],
     availableTimeBlocks: [{ type: String }], // "Morning (8 AM - 12 PM)", etc.
